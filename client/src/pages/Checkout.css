@@ -1,0 +1,139 @@
+.checkout-page {
+  padding: 2rem 0;
+  min-height: 60vh;
+}
+
+.checkout-page h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.checkout-page h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, #1a56db, #3b82f6);
+  border-radius: 2px;
+}
+
+.checkout-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 3rem;
+}
+
+.checkout-form-section h2,
+.checkout-summary h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #1f2937;
+}
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: #1a56db;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+}
+
+.checkout-summary {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  padding: 2.5rem;
+  border-radius: 12px;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.order-items {
+  margin-bottom: 1.5rem;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.order-item-info h4 {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  color: #1f2937;
+}
+
+.order-item-info p {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.order-item-price {
+  font-weight: 700;
+  color: #1a56db;
+  font-size: 1.1rem;
+}
+
+.order-total {
+  padding-top: 1rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.summary-row.total {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-top: 1rem;
+}
+
+@media (max-width: 968px) {
+  .checkout-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .checkout-summary {
+    position: static;
+  }
+}
+
