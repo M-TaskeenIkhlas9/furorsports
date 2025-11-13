@@ -54,7 +54,11 @@ const Contact = () => {
             <h2 className="contact-section-title">GET IN TOUCH</h2>
             <div className="info-item">
               <h3>WhatsApp</h3>
-              <p>+92-330-8317171</p>
+              <p>
+                <a href="https://wa.me/923008522576" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  +92 300 8522576
+                </a>
+              </p>
             </div>
             <div className="info-item">
               <h3>Phone</h3>

@@ -112,7 +112,12 @@ const HowToOrder = () => {
             please don't hesitate to contact us:
           </p>
           <div className="contact-details">
-            <p><strong>WhatsApp:</strong> +92-330-8317171</p>
+            <p>
+              <strong>WhatsApp:</strong>{' '}
+              <a href="https://wa.me/923008522576" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+                +92 300 8522576
+              </a>
+            </p>
             <p><strong>Email:</strong> info@furorsport.com</p>
           </div>
         </section>
