@@ -22,6 +22,8 @@ const AdminProducts = () => {
   const [imagePreview, setImagePreview] = useState('');
   const [uploading, setUploading] = useState(false);
   const [imageInputType, setImageInputType] = useState('url'); // 'url' or 'upload'
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState({});
   const location = useLocation();
   const isMountedRef = useRef(true);
 
@@ -44,6 +46,33 @@ const AdminProducts = () => {
     }
   }, []);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const data = await response.json();
+      
+      // Transform data for easier use
+      const categoriesList = data.map(cat => cat.name);
+      const subcategoriesMap = {};
+      
+      data.forEach(cat => {
+        if (cat.subcategories && cat.subcategories.length > 0) {
+          subcategoriesMap[cat.name] = cat.subcategories.map(sub => sub.name);
+        }
+      });
+      
+      if (isMountedRef.current) {
+        setCategories(categoriesList);
+        setSubcategories(subcategoriesMap);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  }, []);
+
   useEffect(() => {
     isMountedRef.current = true;
     
@@ -61,11 +90,12 @@ const AdminProducts = () => {
     
     setLoading(true);
     fetchProducts();
+    fetchCategories();
     
     return () => {
       isMountedRef.current = false;
     };
-  }, [location.pathname, fetchProducts, navigate]);
+  }, [location.pathname, fetchProducts, fetchCategories, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -203,37 +233,6 @@ const AdminProducts = () => {
     }
   };
 
-  const categories = [
-    'Martial Arts/Karate Uniforms',
-    'Sports Uniforms',
-    'Street Wears',
-    'Fitness Wears'
-  ];
-
-  const subcategories = {
-    'Sports Uniforms': [
-      'American Football Uniforms',
-      'Basketball Uniforms',
-      'Goal Keeper Uniforms',
-      'Soccer Uniforms',
-      'Volleyball Uniforms'
-    ],
-    'Street Wears': [
-      'Hoodies',
-      'Jackets',
-      'Polo Shirts',
-      'T-Shirts',
-      'Track Suits',
-      'Training Vests'
-    ],
-    'Fitness Wears': [
-      'Compression Shirts',
-      'Compression Shorts',
-      'Compression Suit',
-      'Leggings',
-      'Sports Bras'
-    ]
-  };
 
   if (loading) {
     return <div className="admin-loading">Loading products...</div>;

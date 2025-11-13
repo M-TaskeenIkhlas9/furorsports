@@ -178,6 +178,12 @@ const AdminDashboard = () => {
                 Add New Product
               </button>
               <button 
+                onClick={() => navigate('/admin/categories')} 
+                className="btn btn-primary"
+              >
+                Manage Categories
+              </button>
+              <button 
                 onClick={() => setShowPasswordChange(!showPasswordChange)} 
                 className="btn btn-secondary"
               >

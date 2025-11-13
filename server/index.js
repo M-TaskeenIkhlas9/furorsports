@@ -11,6 +11,7 @@ const newsletterRoutes = require('./routes/newsletter');
 const contactRoutes = require('./routes/contact');
 const paymentRoutes = require('./routes/payment');
 const adminRoutes = require('./routes/admin');
+const categoryRoutes = require('./routes/categories');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +44,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {

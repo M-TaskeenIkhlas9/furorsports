@@ -108,6 +108,27 @@ const createTables = () => {
         if (err) reject(err);
       });
 
+      // Categories table
+      db.run(`CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`, (err) => {
+        if (err) reject(err);
+      });
+
+      // Subcategories table
+      db.run(`CREATE TABLE IF NOT EXISTS subcategories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+        UNIQUE(category_id, name)
+      )`, (err) => {
+        if (err) reject(err);
+      });
+
       // Admin table
       db.run(`CREATE TABLE IF NOT EXISTS admin (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -141,7 +162,110 @@ const createTables = () => {
   });
 };
 
+const seedCategories = () => {
+  // Seed categories if they don't exist
+  const categories = [
+    'Martial Arts/Karate Uniforms',
+    'Sports Uniforms',
+    'Street Wears',
+    'Fitness Wears'
+  ];
+
+  const subcategoriesData = {
+    'Martial Arts/Karate Uniforms': [],
+    'Sports Uniforms': [
+      'American Football Uniforms',
+      'Basketball Uniforms',
+      'Goal Keeper Uniforms',
+      'Soccer Uniforms',
+      'Volleyball Uniforms'
+    ],
+    'Street Wears': [
+      'Hoodies',
+      'Jackets',
+      'Polo Shirts',
+      'T-Shirts',
+      'Track Suits',
+      'Training Vests'
+    ],
+    'Fitness Wears': [
+      'Compression Shirts',
+      'Compression Shorts',
+      'Compression Suit',
+      'Leggings',
+      'Sports Bras'
+    ]
+  };
+
+  categories.forEach(categoryName => {
+    db.get("SELECT id FROM categories WHERE name = ?", [categoryName], (err, categoryRow) => {
+      if (err) {
+        console.error('Error checking category:', err);
+        return;
+      }
+
+      if (!categoryRow) {
+        // Category doesn't exist, add it
+        db.run("INSERT INTO categories (name) VALUES (?)", [categoryName], function(catErr) {
+          if (catErr) {
+            console.error('Error adding category:', catErr);
+            return;
+          }
+          
+          const categoryId = this.lastID;
+          const subcategories = subcategoriesData[categoryName] || [];
+          
+          // Add subcategories for this category
+          subcategories.forEach(subName => {
+            db.run(
+              "INSERT INTO subcategories (category_id, name) VALUES (?, ?)",
+              [categoryId, subName],
+              (subErr) => {
+                if (subErr && !subErr.message.includes('UNIQUE constraint')) {
+                  console.error('Error adding subcategory:', subErr);
+                }
+              }
+            );
+          });
+        });
+      } else {
+        // Category exists, check and add missing subcategories
+        const categoryId = categoryRow.id;
+        const subcategories = subcategoriesData[categoryName] || [];
+        
+        subcategories.forEach(subName => {
+          db.get(
+            "SELECT id FROM subcategories WHERE category_id = ? AND name = ?",
+            [categoryId, subName],
+            (err, subRow) => {
+              if (err) {
+                console.error('Error checking subcategory:', err);
+                return;
+              }
+              
+              if (!subRow) {
+                db.run(
+                  "INSERT INTO subcategories (category_id, name) VALUES (?, ?)",
+                  [categoryId, subName],
+                  (subErr) => {
+                    if (subErr && !subErr.message.includes('UNIQUE constraint')) {
+                      console.error('Error adding subcategory:', subErr);
+                    }
+                  }
+                );
+              }
+            }
+          );
+        });
+      }
+    });
+  });
+};
+
 const seedData = () => {
+  // Seed categories first
+  seedCategories();
+  
   // First, seed initial products if database is empty
   db.get("SELECT COUNT(*) as count FROM products", (err, row) => {
     if (err) {

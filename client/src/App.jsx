@@ -14,6 +14,7 @@ import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminProducts from './pages/AdminProducts'
 import AdminOrders from './pages/AdminOrders'
+import AdminCategories from './pages/AdminCategories'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -52,6 +53,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminOrders />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/categories" 
+          element={
+            <ProtectedRoute>
+              <AdminCategories />
             </ProtectedRoute>
           } 
         />

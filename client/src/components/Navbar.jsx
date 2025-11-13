@@ -9,6 +9,7 @@ const Navbar = () => {
   const [isAdmin, setIsAdmin] = useState(false)
   const [productsDropdownOpen, setProductsDropdownOpen] = useState(false)
   const [hoveredCategory, setHoveredCategory] = useState(null)
+  const [categories, setCategories] = useState([])
   const location = useLocation()
 
   useEffect(() => {
@@ -46,6 +47,20 @@ const Navbar = () => {
 
     fetchCartCount()
     const cartInterval = setInterval(fetchCartCount, 2000)
+    
+    // Fetch categories
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories')
+        if (response.ok) {
+          const data = await response.json()
+          setCategories(data)
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    }
+    fetchCategories()
     
     return () => {
       clearInterval(interval)
@@ -107,125 +122,43 @@ const Navbar = () => {
               </Link>
               
               <div className={`products-dropdown ${productsDropdownOpen ? 'open' : ''}`}>
-                  <div 
-                    className="dropdown-column"
-                    onMouseEnter={() => setHoveredCategory(null)}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                  >
-                    <Link 
-                      to="/products?category=Martial Arts/Karate Uniforms" 
-                      className="dropdown-category"
+                {categories.map((category, index) => (
+                  <div key={category.id || index}>
+                    {index > 0 && <div className="dropdown-divider"></div>}
+                    <div 
+                      className="dropdown-column"
+                      onMouseEnter={() => {
+                        // Only set hovered if category has subcategories
+                        if (category.subcategories && category.subcategories.length > 0) {
+                          setHoveredCategory(category.name);
+                        }
+                      }}
+                      onMouseLeave={() => setHoveredCategory(null)}
                     >
-                      Martial Arts/Karate Uniforms
-                    </Link>
+                      <Link 
+                        to={`/products?category=${encodeURIComponent(category.name)}`} 
+                        className="dropdown-category"
+                      >
+                        {category.name}
+                      </Link>
+                      {hoveredCategory === category.name && category.subcategories && category.subcategories.length > 0 && (
+                        <div className="subcategories-container">
+                          {category.subcategories.map(sub => (
+                            <Link 
+                              key={sub.id} 
+                              to={`/products?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(sub.name)}`} 
+                              className="dropdown-subcategory"
+                            >
+                              <span className="chevron-bullet">▶</span>
+                              {sub.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="dropdown-divider"></div>
-                  
-                  <div 
-                    className="dropdown-column"
-                    onMouseEnter={() => setHoveredCategory('Sports Uniforms')}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                  >
-                    <Link to="/products?category=Sports Uniforms" className="dropdown-category">Sports Uniforms</Link>
-                    {hoveredCategory === 'Sports Uniforms' && (
-                      <div className="subcategories-container">
-                        <Link to="/products?category=Sports Uniforms&subcategory=American Football Uniforms" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          American Football Uniforms
-                        </Link>
-                        <Link to="/products?category=Sports Uniforms&subcategory=Basketball Uniforms" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Basketball Uniforms
-                        </Link>
-                        <Link to="/products?category=Sports Uniforms&subcategory=Goal Keeper Uniforms" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Goal Keeper Uniforms
-                        </Link>
-                        <Link to="/products?category=Sports Uniforms&subcategory=Soccer Uniforms" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Soccer Uniforms
-                        </Link>
-                        <Link to="/products?category=Sports Uniforms&subcategory=Volleyball Uniforms" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Volleyball Uniforms
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="dropdown-divider"></div>
-                  
-                  <div 
-                    className="dropdown-column"
-                    onMouseEnter={() => setHoveredCategory('Street Wears')}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                  >
-                    <Link to="/products?category=Street Wears" className="dropdown-category">Street Wears</Link>
-                    {hoveredCategory === 'Street Wears' && (
-                      <div className="subcategories-container">
-                        <Link to="/products?category=Street Wears&subcategory=Hoodies" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Hoodies
-                        </Link>
-                        <Link to="/products?category=Street Wears&subcategory=Jackets" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Jackets
-                        </Link>
-                        <Link to="/products?category=Street Wears&subcategory=Polo Shirts" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Polo Shirts
-                        </Link>
-                        <Link to="/products?category=Street Wears&subcategory=T-Shirts" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          T-Shirts
-                        </Link>
-                        <Link to="/products?category=Street Wears&subcategory=Track Suits" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Track Suits
-                        </Link>
-                        <Link to="/products?category=Street Wears&subcategory=Training Vests" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Training Vests
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="dropdown-divider"></div>
-                  
-                  <div 
-                    className="dropdown-column"
-                    onMouseEnter={() => setHoveredCategory('Fitness Wears')}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                  >
-                    <Link to="/products?category=Fitness Wears" className="dropdown-category">Fitness Wears</Link>
-                    {hoveredCategory === 'Fitness Wears' && (
-                      <div className="subcategories-container">
-                        <Link to="/products?category=Fitness Wears&subcategory=Compression Shirts" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Compression Shirts
-                        </Link>
-                        <Link to="/products?category=Fitness Wears&subcategory=Compression Shorts" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Compression Shorts
-                        </Link>
-                        <Link to="/products?category=Fitness Wears&subcategory=Compression Suit" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Compression Suit
-                        </Link>
-                        <Link to="/products?category=Fitness Wears&subcategory=Leggings" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Leggings
-                        </Link>
-                        <Link to="/products?category=Fitness Wears&subcategory=Sports Bras" className="dropdown-subcategory">
-                          <span className="chevron-bullet">▶</span>
-                          Sports Bras
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                ))}
+              </div>
             </div>
             
             <div className="nav-separator"></div>
