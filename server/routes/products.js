@@ -5,7 +5,7 @@ const { getDb } = require('../database/db');
 // Get all products
 router.get('/', (req, res) => {
   const db = getDb();
-  const { category, subcategory, search } = req.query;
+  const { category, subcategory, search, limit } = req.query;
   
   let query = 'SELECT * FROM products WHERE 1=1';
   const params = [];
@@ -26,7 +26,17 @@ router.get('/', (req, res) => {
     params.push(searchTerm, searchTerm);
   }
   
+  // Always order by newest first (created_at DESC)
   query += ' ORDER BY created_at DESC';
+  
+  // Add LIMIT if specified
+  if (limit) {
+    const limitNum = parseInt(limit, 10);
+    if (!isNaN(limitNum) && limitNum > 0) {
+      query += ' LIMIT ?';
+      params.push(limitNum);
+    }
+  }
   
   db.all(query, params, (err, rows) => {
     if (err) {
