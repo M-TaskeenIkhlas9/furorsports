@@ -58,7 +58,7 @@ const Contact = () => {
             </div>
             <div className="info-item">
               <h3>Phone</h3>
-              <p>+92-305-6261571</p>
+              <p>+92 300 8522576</p>
             </div>
             <div className="info-item">
               <h3>Email</h3>
@@ -67,8 +67,9 @@ const Contact = () => {
             <div className="info-item">
               <h3>Address</h3>
               <p>
-                Defence Road Touheed Town Street 8D,<br />
-                Sialkot-51310, Punjab, Pakistan.
+                Latif Villas, Near Masjid Nawab Bibi,<br />
+                Boota Road, Sialkot,<br />
+                Punjab, Pakistan
               </p>
             </div>
           </div>

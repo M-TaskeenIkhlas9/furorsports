@@ -18,10 +18,9 @@ const Footer = () => {
             
             <div className="footer-section">
               <h3>FUROR SPORT</h3>
-              <p>What's App: +92-330-8317171</p>
-              <p>Phone : +92-305-6261571</p>
+              <p>Phone: +92 300 8522576</p>
               <p>Email: info@furorsport.com</p>
-              <p>Address: Defence Road Touheed Town Street 8D, Sialkot-51310, Punjab, Pakistan.</p>
+              <p>Address: Latif Villas, Near Masjid Nawab Bibi, Boota Road, Sialkot, Punjab, Pakistan</p>
             </div>
             
             <div className="footer-section">
