@@ -1,38 +1,40 @@
 .products-page {
   padding: 2rem 0;
   min-height: 60vh;
+  background: #0a0a0a;
 }
 
 .page-header {
   margin-bottom: 2rem;
 }
 
-.page-header h1 {
+.products-page-title {
   font-size: 2.8rem;
   font-weight: 800;
   margin-bottom: 1rem;
-  color: #1a1a1a;
+  color: #ffffff !important;
   text-transform: uppercase;
   letter-spacing: 2px;
   position: relative;
   padding-bottom: 1rem;
 }
 
-.page-header h1::after {
+.products-page-title::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100px;
   height: 4px;
-  background: linear-gradient(90deg, #1a56db, #3b82f6);
+  background: #4A90E2;
   border-radius: 2px;
 }
 
 .category-filter,
 .subcategory-filter {
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 1.1rem;
+  margin-top: 0.5rem;
 }
 
 .products-grid {

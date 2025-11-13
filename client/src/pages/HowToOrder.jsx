@@ -3,8 +3,11 @@ import './HowToOrder.css'
 const HowToOrder = () => {
   return (
     <div className="how-to-order-page">
+      <div className="order-background-image"></div>
       <div className="container">
-        <h1>How To Order</h1>
+        <div className="page-header">
+          <h1 className="order-page-title">HOW TO ORDER</h1>
+        </div>
         
         <section className="order-steps">
           <div className="step">
@@ -67,7 +70,7 @@ const HowToOrder = () => {
         </section>
 
         <section className="additional-info">
-          <h2>Additional Information</h2>
+          <h2 className="info-section-title">ADDITIONAL INFORMATION</h2>
           <div className="info-grid">
             <div className="info-card">
               <h3>Custom Orders</h3>
@@ -103,14 +106,14 @@ const HowToOrder = () => {
         </section>
 
         <section className="contact-cta">
-          <h2>Need Help?</h2>
+          <h2 className="cta-title">NEED HELP?</h2>
           <p>
             If you have any questions about ordering or need assistance, 
             please don't hesitate to contact us:
           </p>
           <div className="contact-details">
             <p><strong>WhatsApp:</strong> +92-330-8317171</p>
-            <p><strong>Email:</strong> info@toledoexporters.com</p>
+            <p><strong>Email:</strong> info@furorsport.com</p>
           </div>
         </section>
       </div>

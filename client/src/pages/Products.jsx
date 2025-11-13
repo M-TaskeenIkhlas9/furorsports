@@ -38,7 +38,7 @@ const Products = () => {
     <div className="products-page">
       <div className="container">
         <div className="page-header">
-          <h1>Our Products</h1>
+          <h1 className="products-page-title">OUR PRODUCTS</h1>
           {category && <p className="category-filter">Category: {category}</p>}
           {subcategory && <p className="subcategory-filter">Subcategory: {subcategory}</p>}
         </div>

@@ -42,7 +42,7 @@ const AdminLogin = () => {
       <div className="admin-login-container">
         <div className="admin-login-box">
           <h1>Admin Login</h1>
-          <p className="admin-login-subtitle">Toledo Exporters Admin Panel</p>
+          <p className="admin-login-subtitle">Furor Sport Admin Panel</p>
           
           <form onSubmit={handleSubmit} className="admin-login-form">
             <div className="form-group">

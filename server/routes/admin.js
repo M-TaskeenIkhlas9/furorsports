@@ -43,29 +43,45 @@ const upload = multer({
   }
 });
 
-// Simple admin authentication (password-based)
-// In production, use proper authentication like JWT
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-
 // Admin login
 router.post('/login', (req, res) => {
   const { password } = req.body;
+  const db = getDb();
   
-  if (password === ADMIN_PASSWORD) {
-    res.json({ success: true, message: 'Login successful' });
-  } else {
-    res.status(401).json({ success: false, error: 'Invalid password' });
+  if (!password) {
+    return res.status(400).json({ success: false, error: 'Password is required' });
   }
+  
+  // Get admin password from database
+  db.get('SELECT password FROM admin ORDER BY id LIMIT 1', [], (err, row) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: 'Database error' });
+    }
+    
+    if (!row) {
+      return res.status(500).json({ success: false, error: 'Admin not configured' });
+    }
+    
+    if (password === row.password) {
+      res.json({ success: true, message: 'Login successful' });
+    } else {
+      res.status(401).json({ success: false, error: 'Invalid password' });
+    }
+  });
 });
 
 // Middleware to check admin authentication (simple check)
+// Note: This middleware is currently not used, but kept for future use
 const checkAdmin = (req, res, next) => {
   const { password } = req.body;
-  if (password === ADMIN_PASSWORD) {
+  const db = getDb();
+  
+  db.get('SELECT password FROM admin ORDER BY id LIMIT 1', [], (err, row) => {
+    if (err || !row || password !== row.password) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     next();
-  } else {
-    res.status(401).json({ error: 'Unauthorized' });
-  }
+  });
 };
 
 // Get all products (admin view with all details)
@@ -345,6 +361,48 @@ router.get('/categories', (req, res) => {
       res.json(categories);
     }
   );
+});
+
+// Change admin password
+router.post('/change-password', (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const db = getDb();
+  
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, error: 'Current password and new password are required' });
+  }
+  
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, error: 'New password must be at least 6 characters long' });
+  }
+  
+  // Verify current password
+  db.get('SELECT password FROM admin ORDER BY id LIMIT 1', [], (err, row) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: 'Database error' });
+    }
+    
+    if (!row) {
+      return res.status(500).json({ success: false, error: 'Admin not configured' });
+    }
+    
+    if (currentPassword !== row.password) {
+      return res.status(401).json({ success: false, error: 'Current password is incorrect' });
+    }
+    
+    // Update password
+    db.run(
+      'UPDATE admin SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM admin ORDER BY id LIMIT 1)',
+      [newPassword],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ success: false, error: 'Failed to update password' });
+        }
+        
+        res.json({ success: true, message: 'Password changed successfully' });
+      }
+    );
+  });
 });
 
 module.exports = router;

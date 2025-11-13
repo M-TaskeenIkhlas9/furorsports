@@ -5,6 +5,8 @@ import './Home.css'
 const Home = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [productIndex, setProductIndex] = useState(0)
 
   useEffect(() => {
     fetchProducts()
@@ -22,30 +24,181 @@ const Home = () => {
     }
   }
 
+  const slides = [
+    {
+      title: 'FITNESS',
+      subtitle: 'PREMIUM',
+      subtitle2: 'ACTIVEWEAR',
+      description: 'ELEVATE YOUR WORKOUT WITH OUR PREMIUM COMPRESSION ACTIVE WEAR - PERFECT FIT, MAXIMUM PERFORMANCE',
+      image: '/images/products/furor-sport/fitness-activewear-set.jpg',
+      features: [
+        'Premium Compression Fabric',
+        'Moisture-Wicking Technology',
+        '4-Way Stretch for Freedom of Movement',
+        'Breathable & Lightweight',
+        'Perfect for Gym, Running & Training'
+      ],
+      cta: 'SHOP FITNESS WEAR',
+      price: 'Starting at $29.99'
+    },
+    {
+      title: 'SWIMWEAR',
+      subtitle: 'ATHLETIC',
+      subtitle2: 'COLLECTION',
+      description: 'STUNNING ATHLETIC SWIMWEAR THAT COMBINES STYLE WITH PERFORMANCE - PERFECT FOR POOL & BEACH',
+      image: '/images/products/furor-sport/athletic-swimsuit.jpg',
+      features: [
+        'Chlorine Resistant Fabric',
+        'Quick-Dry Technology',
+        'Supportive & Comfortable Fit',
+        'Stylish Color Block Design',
+        'Ideal for Competitive Swimming'
+      ],
+      cta: 'SHOP SWIMWEAR',
+      price: 'Starting at $34.99'
+    },
+    {
+      title: 'STREET',
+      subtitle: 'CASUAL',
+      subtitle2: 'WEAR',
+      description: 'COMFORTABLE & STYLISH RACERBACK TANK TOPS - PERFECT FOR EVERYDAY WEAR & CASUAL WORKOUTS',
+      image: '/images/products/furor-sport/racerback-tank.jpg',
+      features: [
+        'Soft & Breathable Cotton Blend',
+        'Classic Racerback Design',
+        'Moisture-Wicking Properties',
+        'Versatile Day-to-Night Style',
+        'Available in Multiple Colors'
+      ],
+      cta: 'SHOP STREET WEAR',
+      price: 'Starting at $19.99'
+    }
+  ]
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  }
+
+  // Auto-advance slides every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [slides.length])
+
   return (
     <div className="home">
       {/* Hero Section */}
       <section className="hero">
-        <div className="hero-content">
-          <h1>Welcome to Toledo Exporters</h1>
-          <p>Professional Sports Wear, Fitness Wear & Street Wear</p>
-          <Link to="/products" className="btn btn-primary">VIEW PRODUCTS</Link>
+        <div className="hero-background"></div>
+        <div className="container hero-container">
+          <div className="hero-content-wrapper">
+            {/* Left Content */}
+            <div className="hero-left">
+              <div className="hero-text-wrapper">
+                <div className="hero-text-small">{slides[currentSlide].subtitle}</div>
+                <div className="hero-text-large">{slides[currentSlide].title}</div>
+                <div className="hero-text-small">{slides[currentSlide].subtitle2}</div>
+                <div className="hero-orange-frame"></div>
+              </div>
+              <p className="hero-description">
+                {slides[currentSlide].description}
+              </p>
+              <div className="hero-features">
+                {slides[currentSlide].features?.map((feature, idx) => (
+                  <div key={idx} className="hero-feature-item">
+                    <span className="feature-check">✓</span>
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="hero-price">{slides[currentSlide].price}</div>
+              <Link to="/products" className="btn-hero-primary">
+                {slides[currentSlide].cta || 'VIEW PRODUCTS'}
+              </Link>
+              <div className="hero-indicators">
+                {slides.map((_, index) => (
+                  <span
+                    key={index}
+                    className={`indicator ${index === currentSlide ? 'active' : ''}`}
+                    onClick={() => setCurrentSlide(index)}
+                  ></span>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Image */}
+            <div className="hero-right">
+              <div className="hero-image-container">
+                <img 
+                  src={slides[currentSlide].image} 
+                  alt={slides[currentSlide].title}
+                  className="hero-image"
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=1000&fit=crop'
+                  }}
+                />
+                <div className="hero-image-overlay">
+                  <div className="hero-badge">NEW COLLECTION</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Arrows */}
+            <button className="hero-nav hero-nav-left" onClick={prevSlide}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+            <button className="hero-nav hero-nav-right" onClick={nextSlide}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="hero-slider">
-          <div className="slide active">
-            <h2>Quality Sports Wear</h2>
-            <Link to="/products?category=Sports Uniforms" className="btn btn-outline">VIEW PRODUCTS</Link>
+      </section>
+
+      {/* Create Your Own Brand Section */}
+      <section className="create-brand-section">
+        <div className="container">
+          <h2 className="create-brand-title">CREATE YOUR OWN BRAND</h2>
+          <div className="customization-steps">
+            <div className="step-item">
+              <span className="step-number">1</span>
+              <span className="step-text">SELECT YOUR FABRIC</span>
+            </div>
+            <div className="step-item">
+              <span className="step-number">2</span>
+              <span className="step-text">SEND US YOUR SIZE AND STYLE</span>
+            </div>
+            <div className="step-item">
+              <span className="step-number">3</span>
+              <span className="step-text">ADD YOUR PRIVATE LABEL</span>
+            </div>
+            <div className="step-item">
+              <span className="step-number">4</span>
+              <span className="step-text">SEND US YOUR DESIGN</span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Who We Are */}
       <section className="section about-section">
+        <div className="about-background-image"></div>
         <div className="container">
-          <h2 className="section-title">Who We Are.</h2>
+          <h2 className="section-title about-title">
+            WHO WE ARE<span className="title-dot"></span>
+          </h2>
           <div className="about-content">
             <p>
-              TOLEDO EXPORTERS is a Family Owned company from Sialkot in Pakistan, 
+              <span className="company-name">FUROR SPORT</span> is a Family Owned company from Sialkot in Pakistan, 
               that has been manufacturing high quality Professional Sports Wears, 
               Fitness Wears, Casual Wear and all kinds of Street Wears equipment. 
               Our products are shipped and delivered all around the World to countless 
@@ -55,44 +208,46 @@ const Home = () => {
               Our product speaks for themselves and our consistency in delivery and 
               quality is unmatched.
             </p>
-            <p>
+            <p className="centered-text">
               We look forward to providing with you with the best quality gear that 
               gets you the Gold!!
             </p>
-            <Link to="/about" className="btn btn-primary">LEARN MORE</Link>
+            <Link to="/about" className="btn btn-about-primary">LEARN MORE</Link>
           </div>
         </div>
       </section>
 
       {/* Core Values */}
       <section className="section values-section">
+        <div className="values-background-image"></div>
         <div className="container">
-          <h2 className="section-title">OUR CORE VALUES.</h2>
+          <h2 className="section-title values-title">OUR CORE VALUES.</h2>
           <p className="values-intro">
             Our vision was to create more than just a place where people could buy 
             affordable active wear or sportswear in Pakistan. We wanted our customers 
             to be able to be true to their style, while maintaining tactile functionality. 
             We have tried to maximize comfort by designing our own unique measurement and fittings.
           </p>
-          <div className="values-grid">
-            <div className="value-card">
-              <h3>Fitness Wears</h3>
-              <p>High-quality fitness wear for all your training needs</p>
-            </div>
-            <div className="value-card">
-              <h3>Sports Uniforms</h3>
-              <p>Professional sports uniforms for teams and athletes</p>
-            </div>
-            <div className="value-card">
-              <h3>Street Wears</h3>
-              <p>Stylish and comfortable street wear for everyday</p>
-            </div>
+        </div>
+        <div className="values-grid">
+          <div className="value-card value-card-fitness">
+            <div className="value-card-overlay"></div>
+            <h3 className="value-card-title">FITNESS WEARS</h3>
+          </div>
+          <div className="value-card value-card-sports">
+            <div className="value-card-overlay"></div>
+            <h3 className="value-card-title">SPORTS WEARS</h3>
+          </div>
+          <div className="value-card value-card-street">
+            <div className="value-card-overlay"></div>
+            <h3 className="value-card-title">STREET WEARS</h3>
           </div>
         </div>
       </section>
 
       {/* Latest Products */}
       <section className="section products-section">
+        <div className="products-background-image"></div>
         <div className="container">
           <h2 className="section-title">LATEST PRODUCTS.</h2>
           {loading ? (
@@ -100,27 +255,45 @@ const Home = () => {
               <div className="spinner"></div>
             </div>
           ) : (
-            <div className="products-grid">
-              {products.map(product => (
-                <div key={product.id} className="product-card">
-                  <div className="product-image">
-                    <img 
-                      src={product.image || '/placeholder-product.jpg'} 
-                      alt={product.name}
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/300x300?text=Product'
-                      }}
-                    />
+            <div className="products-carousel-container">
+              <button 
+                className="products-arrow products-arrow-left"
+                onClick={() => setProductIndex(prev => Math.max(0, prev - 1))}
+                disabled={productIndex === 0}
+                aria-label="Previous products"
+              >
+                ‹
+              </button>
+              <div className="products-grid">
+                {products.slice(productIndex, productIndex + 3).map(product => (
+                  <div key={product.id} className="product-card">
+                    <div className="product-image">
+                      <img 
+                        src={product.image || '/placeholder-product.jpg'} 
+                        alt={product.name}
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/300x300?text=Product'
+                        }}
+                      />
+                    </div>
+                    <div className="product-info">
+                      <h3>{product.name}</h3>
+                      <p className="product-price">${product.price.toFixed(2)}</p>
+                      <Link to={`/product/${product.id}`} className="btn btn-outline">
+                        Show Details
+                      </Link>
+                    </div>
                   </div>
-                  <div className="product-info">
-                    <h3>{product.name}</h3>
-                    <p className="product-price">${product.price.toFixed(2)}</p>
-                    <Link to={`/product/${product.id}`} className="btn btn-outline">
-                      Show Details
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <button 
+                className="products-arrow products-arrow-right"
+                onClick={() => setProductIndex(prev => Math.min(products.length - 3, prev + 1))}
+                disabled={productIndex >= products.length - 3}
+                aria-label="Next products"
+              >
+                ›
+              </button>
             </div>
           )}
           <div className="text-center" style={{ marginTop: '2rem' }}>
@@ -165,21 +338,24 @@ const Home = () => {
       {/* Newsletter */}
       <section className="section newsletter-section">
         <div className="container">
-          <h2 className="section-title">Subscribe to our Newsletter.</h2>
+          <h2 className="section-title newsletter-title">
+            SUBSCRIBE TO OUR NEWSLETTER.
+            <span className="title-dot"></span>
+          </h2>
           <form className="newsletter-form" onSubmit={handleNewsletterSubmit}>
             <input 
               type="text" 
-              placeholder="Name *" 
+              placeholder="Name*" 
               required
               name="name"
             />
             <input 
               type="email" 
-              placeholder="E-Mail *" 
+              placeholder="E-Mail*" 
               required
               name="email"
             />
-            <button type="submit" className="btn btn-primary">Subscribe</button>
+            <button type="submit" className="newsletter-subscribe-btn">Subscribe</button>
           </form>
         </div>
       </section>
@@ -210,4 +386,3 @@ const Home = () => {
 }
 
 export default Home
-

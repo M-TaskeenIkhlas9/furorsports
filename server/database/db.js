@@ -106,7 +106,36 @@ const createTables = () => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`, (err) => {
         if (err) reject(err);
-        resolve();
+      });
+
+      // Admin table
+      db.run(`CREATE TABLE IF NOT EXISTS admin (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        password TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`, (err) => {
+        if (err) reject(err);
+        
+        // Initialize admin password if table is empty
+        db.get("SELECT COUNT(*) as count FROM admin", (err, row) => {
+          if (!err && row.count === 0) {
+            const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
+            db.run(
+              "INSERT INTO admin (password) VALUES (?)",
+              [defaultPassword],
+              (err) => {
+                if (err) {
+                  console.error('Error initializing admin password:', err);
+                } else {
+                  console.log('Admin password initialized');
+                }
+                resolve();
+              }
+            );
+          } else {
+            resolve();
+          }
+        });
       });
     });
   });

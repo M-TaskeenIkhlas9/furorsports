@@ -3,52 +3,77 @@ import './Footer.css'
 
 const Footer = () => {
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer-content">
-          <div className="footer-section">
-            <h3>About Toledo Exporters</h3>
-            <p>
-              TOLEDO EXPORTERS is a Family Owned company from Sialkot in Pakistan, 
-              that has been manufacturing high quality Professional Sports Wear, 
-              Fitness Wear, Casual Wear and all kinds of Martial Arts equipment.
-            </p>
+    <>
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-content">
+            <div className="footer-section">
+              <h3>INTERESTING INFOS</h3>
+              <p>
+                FUROR SPORT is a Family Owned company from Sialkot in Pakistan, 
+                that has been manufacturing high quality Professional Sports Wear, 
+                Fitness Wear, Casual Wear and all kinds of Martial Arts equipment.
+              </p>
+            </div>
+            
+            <div className="footer-section">
+              <h3>FUROR SPORT</h3>
+              <p>What's App: +92-330-8317171</p>
+              <p>Phone : +92-305-6261571</p>
+              <p>Email: info@furorsport.com</p>
+              <p>Address: Defence Road Touheed Town Street 8D, Sialkot-51310, Punjab, Pakistan.</p>
+            </div>
+            
+            <div className="footer-section">
+              <h3>QUICK LINKS</h3>
+              <Link to="/products">Products</Link>
+              <Link to="/about">About</Link>
+              <Link to="/contact">Contact</Link>
+              <Link to="/how-to-order">How To Order</Link>
+            </div>
           </div>
           
-          <div className="footer-section">
-            <h3>Contact Info</h3>
-            <p><strong>WhatsApp:</strong> +92-330-8317171</p>
-            <p><strong>Phone:</strong> +92-305-6261571</p>
-            <p><strong>Email:</strong> info@toledoexporters.com</p>
-            <p>
-              <strong>Address:</strong> Defence Road Touheed Town Street 8D, 
-              Sialkot-51310, Punjab, Pakistan.
-            </p>
-          </div>
-          
-          <div className="footer-section">
-            <h3>Quick Links</h3>
-            <Link to="/products">Products</Link>
-            <Link to="/about">About</Link>
-            <Link to="/contact">Contact</Link>
-            <Link to="/how-to-order">How To Order</Link>
-          </div>
-          
-          <div className="footer-section">
-            <h3>Follow Us</h3>
-            <div className="social-links">
-              <a href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
-              <a href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
-              <a href="#" target="_blank" rel="noopener noreferrer">Pinterest</a>
+          <div className="footer-bottom">
+            <p className="copyright">&copy; Furor Sport All Rights Reserved</p>
+            <div className="social-icons-bottom">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-icon-bottom" aria-label="Facebook">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-icon-bottom" aria-label="Instagram">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </a>
+              <a href="mailto:info@furorsport.com" className="social-icon-bottom" aria-label="Email">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/>
+                </svg>
+              </a>
+              <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="social-icon-bottom" aria-label="Pinterest">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.372 0 12s5.373 12 12 12c5.084 0 9.426-3.163 11.174-7.637-.15-.823-.285-2.205.06-3.15.32-.136 1.302-1.11 1.302-1.11s.332-.664.332-1.644c0-1.54-.893-2.69-2.004-2.69-.59 0-1.196.222-1.196.833 0 .59.755 1.05 1.26 1.64.37.44.56.8.56 1.38 0 1.03-.67 1.89-1.63 1.89-.53 0-1.04-.28-1.21-.64 0 0-.27 1.03-.33 1.27-.12.46-.45.93-.67 1.25-.54.72-1.12 1.45-1.12 2.95 0 1.06.31 2.08.89 2.95.22.27.05.33-.17.16-.53-.4-.86-1.02-.86-1.84 0-1.38.75-2.64 2.2-2.64 1.44 0 2.24 1.08 2.24 2.25 0 1.52-.64 2.8-1.58 3.38-.5.26-.59.15-.34-.23.38-.6.6-1.35.6-2.18 0-.92-.5-1.7-1.52-1.7-1.24 0-2.24 1.28-2.24 2.98 0 1.1.35 1.85.35 1.85s-.38 1.6-.45 1.9c-.14.54-.1.73-.05 1.2.03.17.22.21.31.13.15-.12 2.05-2.54 2.05-2.54.27-.52.42-1.2.42-1.93 0-1.52-.82-2.98-2.5-2.98-1.7 0-2.9 1.29-2.9 3.01 0 1.11.36 1.87.36 1.87s-.24 1.03-.3 1.28c-.08.3-.27.73-.12 1.52.09.6.51.98.92.73.23-.14 1.95-1.15 2.6-1.88.38-.43.68-.95.68-1.7 0-.73-.39-1.35-1.2-1.35-.95 0-1.72.98-1.72 2.29 0 .84.28 1.41.28 1.41l-1.13 4.78c-.27 1.15-.04 2.56-.02 2.7.01.08.11.1.15.04.06-.08.8-1.01 1.07-1.94.14-.47.8-3.97.8-3.97.4.76 1.57 1.43 2.81 1.43 3.7 0 6.21-3.4 6.21-7.95C20.01 5.39 16.61 2 12 2z"/>
+                </svg>
+              </a>
             </div>
           </div>
         </div>
-        
-        <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Toledo Exporters. All Rights Reserved.</p>
-        </div>
-      </div>
-    </footer>
+      </footer>
+      
+      {/* Floating WhatsApp Button */}
+      <a 
+        href="https://wa.me/923308317171" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="whatsapp-float"
+        aria-label="WhatsApp"
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.98 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+        </svg>
+      </a>
+    </>
   )
 }
 
