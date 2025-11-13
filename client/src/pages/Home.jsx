@@ -14,9 +14,10 @@ const Home = () => {
 
   const fetchProducts = async () => {
     try {
+      // Fetch the 8 newest products (backend handles limit and sorting)
       const response = await fetch('/api/products?limit=8')
       const data = await response.json()
-      setProducts(data.slice(0, 8))
+      setProducts(data) // Backend already returns only 8 newest products
       setLoading(false)
     } catch (error) {
       console.error('Error fetching products:', error)
