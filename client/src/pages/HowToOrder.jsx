@@ -118,7 +118,12 @@ const HowToOrder = () => {
                 +92 300 8522576
               </a>
             </p>
-            <p><strong>Email:</strong> info@furorsport.com</p>
+            <p>
+              <strong>Email:</strong>{' '}
+              <a href="mailto:Furorsport1@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>
+                Furorsport1@gmail.com
+              </a>
+            </p>
           </div>
         </section>
       </div>

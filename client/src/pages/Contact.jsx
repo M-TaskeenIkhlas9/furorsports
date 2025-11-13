@@ -66,7 +66,11 @@ const Contact = () => {
             </div>
             <div className="info-item">
               <h3>Email</h3>
-              <p>info@furorsport.com</p>
+              <p>
+                <a href="mailto:Furorsport1@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  Furorsport1@gmail.com
+                </a>
+              </p>
             </div>
             <div className="info-item">
               <h3>Address</h3>
