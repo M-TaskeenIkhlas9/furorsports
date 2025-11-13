@@ -41,7 +41,7 @@ const CheckoutSuccess = () => {
   if (loading) {
     return (
       <div className="checkout-success-page">
-        <div className="container">
+        <div className="success-modal-overlay">
           <div className="loading">
             <div className="spinner"></div>
             <p>Verifying your payment...</p>
@@ -53,42 +53,56 @@ const CheckoutSuccess = () => {
 
   return (
     <div className="checkout-success-page">
-      <div className="container">
+      <div className="success-modal-overlay">
         {orderInfo ? (
-          <div className="success-content">
-            <div className="success-icon">✓</div>
-            <h1>Payment Successful!</h1>
-            <p className="success-message">
-              Thank you for your purchase. Your order has been confirmed.
-            </p>
+          <div className="success-modal">
+            <div className="success-icon-container">
+              <div className="success-icon">✓</div>
+            </div>
             
-            <div className="order-details">
-              <h2>Order Details</h2>
-              <div className="detail-row">
-                <span>Order Number:</span>
-                <strong>{orderInfo.orderNumber}</strong>
-              </div>
-              <div className="detail-row">
-                <span>Payment Status:</span>
-                <strong className="status-paid">{orderInfo.paymentStatus}</strong>
+            <h1 className="success-title">Payment Successful!</h1>
+            
+            <div className="success-confirmation-box">
+              <p className="success-confirmation-text">
+                Thank you for your purchase. Your order has been confirmed.
+              </p>
+            </div>
+            
+            <div className="order-details-card">
+              <h2 className="order-details-title">Order Details</h2>
+              <div className="order-info-grid">
+                <div className="order-info-item">
+                  <span className="order-info-label">Order Number:</span>
+                  <span className="order-info-value">{orderInfo.orderNumber || 'N/A'}</span>
+                </div>
+                <div className="order-info-divider"></div>
+                <div className="order-info-item">
+                  <span className="order-info-label">Payment Status:</span>
+                  <span className="order-info-value status-paid">{orderInfo.paymentStatus === 'paid' ? 'paid' : orderInfo.paymentStatus || 'pending'}</span>
+                </div>
               </div>
             </div>
 
             <div className="success-actions">
-              <Link to="/" className="btn btn-primary">
-                Continue Shopping
+              <Link to="/" className="btn-success-primary">
+                CONTINUE SHOPPING
               </Link>
-              <Link to="/products" className="btn btn-outline">
-                View Products
+              <Link to="/products" className="btn-success-secondary">
+                VIEW PRODUCTS
               </Link>
             </div>
           </div>
         ) : (
-          <div className="success-content">
-            <h1>Payment Processing</h1>
-            <p>Your payment is being processed. You will receive a confirmation email shortly.</p>
-            <Link to="/" className="btn btn-primary">
-              Return to Home
+          <div className="success-modal">
+            <div className="success-icon-container">
+              <div className="success-icon">⏳</div>
+            </div>
+            <h1 className="success-title">Payment Processing</h1>
+            <p className="success-confirmation-text">
+              Your payment is being processed. You will receive a confirmation email shortly.
+            </p>
+            <Link to="/" className="btn-success-primary">
+              RETURN TO HOME
             </Link>
           </div>
         )}
