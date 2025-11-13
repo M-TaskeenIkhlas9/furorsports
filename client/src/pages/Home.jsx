@@ -7,9 +7,11 @@ const Home = () => {
   const [loading, setLoading] = useState(true)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [productIndex, setProductIndex] = useState(0)
+  const [heroSlides, setHeroSlides] = useState([])
 
   useEffect(() => {
     fetchProducts()
+    fetchFeaturedProducts()
   }, [])
 
   const fetchProducts = async () => {
@@ -25,7 +27,65 @@ const Home = () => {
     }
   }
 
-  const slides = [
+  const fetchFeaturedProducts = async () => {
+    try {
+      const response = await fetch('/api/products/featured/hero')
+      const data = await response.json()
+      
+      // Transform products into slide format
+      const transformedSlides = data.map(product => {
+        // Extract category words for title/subtitle
+        const categoryWords = product.category ? product.category.split(' ') : ['PRODUCT']
+        const title = categoryWords[0]?.toUpperCase() || 'PRODUCT'
+        const subtitle = categoryWords.slice(1, 2).join(' ').toUpperCase() || 'COLLECTION'
+        const subtitle2 = categoryWords.slice(2).join(' ').toUpperCase() || ''
+        
+        // Create features from description (split by sentences or use default)
+        const features = product.description 
+          ? product.description.split(/[.!?]/).filter(s => s.trim().length > 10).slice(0, 5).map(s => s.trim())
+          : [
+              'Premium Quality Materials',
+              'Comfortable & Durable',
+              'Perfect Fit Guaranteed',
+              'Stylish Design',
+              'Great Value'
+            ]
+        
+        // Create CTA based on category
+        const cta = product.category 
+          ? `SHOP ${product.category.toUpperCase()}`
+          : 'SHOP NOW'
+        
+        return {
+          id: product.id,
+          title,
+          subtitle,
+          subtitle2,
+          description: product.description || 'PREMIUM QUALITY PRODUCT DESIGNED FOR PERFORMANCE AND STYLE',
+          image: product.image || '/images/placeholder.jpg',
+          features: features.length > 0 ? features : [
+            'Premium Quality Materials',
+            'Comfortable & Durable',
+            'Perfect Fit Guaranteed',
+            'Stylish Design',
+            'Great Value'
+          ],
+          cta,
+          price: `Starting at $${parseFloat(product.price).toFixed(2)}`,
+          productId: product.id
+        }
+      })
+      
+      setHeroSlides(transformedSlides)
+    } catch (error) {
+      console.error('Error fetching featured products:', error)
+      // Fallback to default slides if API fails
+      setHeroSlides([])
+    }
+  }
+
+  // Fallback slides if no featured products
+  const defaultSlides = [
     {
       title: 'FITNESS',
       subtitle: 'PREMIUM',
@@ -76,6 +136,9 @@ const Home = () => {
     }
   ]
 
+  // Use featured products if available, otherwise use default slides
+  const slides = heroSlides.length > 0 ? heroSlides : defaultSlides
+
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
   }
@@ -86,6 +149,7 @@ const Home = () => {
 
   // Auto-advance slides every 5 seconds
   useEffect(() => {
+    if (slides.length === 0) return
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, 5000)
@@ -101,27 +165,38 @@ const Home = () => {
           <div className="hero-content-wrapper">
             {/* Left Content */}
             <div className="hero-left">
-              <div className="hero-text-wrapper">
-                <div className="hero-text-small">{slides[currentSlide].subtitle}</div>
-                <div className="hero-text-large">{slides[currentSlide].title}</div>
-                <div className="hero-text-small">{slides[currentSlide].subtitle2}</div>
-                <div className="hero-orange-frame"></div>
-              </div>
-              <p className="hero-description">
-                {slides[currentSlide].description}
-              </p>
-              <div className="hero-features">
-                {slides[currentSlide].features?.map((feature, idx) => (
-                  <div key={idx} className="hero-feature-item">
-                    <span className="feature-check">✓</span>
-                    <span>{feature}</span>
+              {slides.length > 0 && slides[currentSlide] ? (
+                <>
+                  <div className="hero-text-wrapper">
+                    <div className="hero-text-small">{slides[currentSlide].subtitle}</div>
+                    <div className="hero-text-large">{slides[currentSlide].title}</div>
+                    <div className="hero-text-small">{slides[currentSlide].subtitle2}</div>
+                    <div className="hero-orange-frame"></div>
                   </div>
-                ))}
-              </div>
-              <div className="hero-price">{slides[currentSlide].price}</div>
-              <Link to="/products" className="btn-hero-primary">
-                {slides[currentSlide].cta || 'VIEW PRODUCTS'}
-              </Link>
+                  <p className="hero-description">
+                    {slides[currentSlide].description}
+                  </p>
+                  <div className="hero-features">
+                    {slides[currentSlide].features?.map((feature, idx) => (
+                      <div key={idx} className="hero-feature-item">
+                        <span className="feature-check">✓</span>
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="hero-price">{slides[currentSlide].price}</div>
+                  <Link 
+                    to={slides[currentSlide]?.productId ? `/product/${slides[currentSlide].productId}` : "/products"} 
+                    className="btn-hero-primary"
+                  >
+                    {slides[currentSlide]?.cta || 'VIEW PRODUCTS'}
+                  </Link>
+                </>
+              ) : (
+                <div style={{ color: '#ffffff', textAlign: 'center' }}>
+                  <p>Loading featured products...</p>
+                </div>
+              )}
               <div className="hero-indicators">
                 {slides.map((_, index) => (
                   <span
@@ -135,19 +210,21 @@ const Home = () => {
 
             {/* Right Image */}
             <div className="hero-right">
-              <div className="hero-image-container">
-                <img 
-                  src={slides[currentSlide].image} 
-                  alt={slides[currentSlide].title}
-                  className="hero-image"
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=1000&fit=crop'
-                  }}
-                />
-                <div className="hero-image-overlay">
-                  <div className="hero-badge">NEW COLLECTION</div>
+              {slides.length > 0 && slides[currentSlide] ? (
+                <div className="hero-image-container">
+                  <img 
+                    src={slides[currentSlide].image} 
+                    alt={slides[currentSlide].title}
+                    className="hero-image"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=1000&fit=crop'
+                    }}
+                  />
+                  <div className="hero-image-overlay">
+                    <div className="hero-badge">NEW COLLECTION</div>
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
 
             {/* Navigation Arrows */}

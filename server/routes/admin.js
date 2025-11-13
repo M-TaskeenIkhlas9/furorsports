@@ -118,16 +118,16 @@ router.get('/products/:id', (req, res) => {
 // Add new product
 router.post('/products', (req, res) => {
   const db = getDb();
-  const { name, description, price, image, category, subcategory, stock } = req.body;
+  const { name, description, price, image, category, subcategory, stock, featured } = req.body;
   
   if (!name || !price || !category) {
     return res.status(400).json({ error: 'Name, price, and category are required' });
   }
   
   db.run(
-    `INSERT INTO products (name, description, price, image, category, subcategory, stock) 
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [name, description || '', price, image || '', category, subcategory || '', stock || 100],
+    `INSERT INTO products (name, description, price, image, category, subcategory, stock, featured) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [name, description || '', price, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -146,13 +146,13 @@ router.post('/products', (req, res) => {
 router.put('/products/:id', (req, res) => {
   const db = getDb();
   const { id } = req.params;
-  const { name, description, price, image, category, subcategory, stock } = req.body;
+  const { name, description, price, image, category, subcategory, stock, featured } = req.body;
   
   db.run(
     `UPDATE products 
-     SET name = ?, description = ?, price = ?, image = ?, category = ?, subcategory = ?, stock = ?
+     SET name = ?, description = ?, price = ?, image = ?, category = ?, subcategory = ?, stock = ?, featured = ?
      WHERE id = ?`,
-    [name, description, price, image, category, subcategory, stock, id],
+    [name, description, price, image, category, subcategory, stock, featured ? 1 : 0, id],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });

@@ -34,10 +34,14 @@ const createTables = () => {
         category TEXT,
         subcategory TEXT,
         stock INTEGER DEFAULT 100,
+        featured INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`, (err) => {
         if (err) reject(err);
       });
+
+      // Add featured column if it doesn't exist (for existing databases)
+      db.run(`ALTER TABLE products ADD COLUMN featured INTEGER DEFAULT 0`, () => {});
 
       // Cart table
       db.run(`CREATE TABLE IF NOT EXISTS cart (

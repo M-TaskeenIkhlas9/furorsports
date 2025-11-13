@@ -92,5 +92,40 @@ router.get('/meta/categories', (req, res) => {
   });
 });
 
+// Get featured products for hero section
+router.get('/featured/hero', (req, res) => {
+  const db = getDb();
+  
+  // Get up to 5 featured products, or newest products if none are featured
+  db.all(`
+    SELECT * FROM products 
+    WHERE featured = 1 
+    ORDER BY created_at DESC 
+    LIMIT 5
+  `, [], (err, featuredRows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    
+    // If no featured products, get 3 newest products
+    if (featuredRows.length === 0) {
+      db.all(`
+        SELECT * FROM products 
+        ORDER BY created_at DESC 
+        LIMIT 3
+      `, [], (err, newRows) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        res.json(newRows);
+      });
+    } else {
+      res.json(featuredRows);
+    }
+  });
+});
+
 module.exports = router;
 

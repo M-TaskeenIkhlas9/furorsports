@@ -16,7 +16,8 @@ const AdminProducts = () => {
     image: '',
     category: '',
     subcategory: '',
-    stock: 100
+    stock: 100,
+    featured: false
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -179,7 +180,8 @@ const AdminProducts = () => {
           image: '',
           category: '',
           subcategory: '',
-          stock: 100
+          stock: 100,
+          featured: false
         });
         setShowAddForm(false);
         setEditingProduct(null);
@@ -202,7 +204,8 @@ const AdminProducts = () => {
       image: product.image || '',
       category: product.category || '',
       subcategory: product.subcategory || '',
-      stock: product.stock || 100
+      stock: product.stock || 100,
+      featured: product.featured === 1 || product.featured === true
     });
     setImagePreview(product.image || '');
     setImageFile(null);
@@ -455,6 +458,22 @@ const AdminProducts = () => {
                     min="0"
                     placeholder="100"
                   />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      name="featured"
+                      checked={formData.featured}
+                      onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
+                      style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                    />
+                    <span>⭐ Feature in Hero Section (Homepage)</span>
+                  </label>
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'rgba(203, 213, 225, 0.7)' }}>
+                    Featured products will appear in the hero carousel on the homepage
+                  </p>
                 </div>
 
                 <div className="form-actions">
