@@ -34,22 +34,133 @@ const Home = () => {
       
       // Transform products into slide format
       const transformedSlides = data.map(product => {
-        // Extract category words for title/subtitle
-        const categoryWords = product.category ? product.category.split(' ') : ['PRODUCT']
-        const title = categoryWords[0]?.toUpperCase() || 'PRODUCT'
-        const subtitle = categoryWords.slice(1, 2).join(' ').toUpperCase() || 'COLLECTION'
-        const subtitle2 = categoryWords.slice(2).join(' ').toUpperCase() || ''
+        // Better category parsing for title/subtitle
+        let title = 'PRODUCT'
+        let subtitle = 'COLLECTION'
+        let subtitle2 = ''
         
-        // Create features from description (split by sentences or use default)
-        const features = product.description 
-          ? product.description.split(/[.!?]/).filter(s => s.trim().length > 10).slice(0, 5).map(s => s.trim())
-          : [
+        if (product.category) {
+          const categoryUpper = product.category.toUpperCase()
+          
+          // Handle specific categories
+          if (categoryUpper.includes('STREET')) {
+            subtitle = 'CASUAL'
+            title = 'STREET'
+            subtitle2 = 'WEAR'
+          } else if (categoryUpper.includes('FITNESS')) {
+            subtitle = 'PREMIUM'
+            title = 'FITNESS'
+            subtitle2 = 'ACTIVEWEAR'
+          } else if (categoryUpper.includes('SPORTS')) {
+            subtitle = 'ATHLETIC'
+            title = 'SPORTS'
+            subtitle2 = 'UNIFORMS'
+          } else if (categoryUpper.includes('MARTIAL') || categoryUpper.includes('KARATE')) {
+            subtitle = 'TRADITIONAL'
+            title = 'MARTIAL ARTS'
+            subtitle2 = 'UNIFORMS'
+          } else {
+            // Generic parsing
+            const words = product.category.split(' ')
+            if (words.length >= 2) {
+              subtitle = words[0]?.toUpperCase() || 'COLLECTION'
+              title = words.slice(1, 2).join(' ').toUpperCase() || 'PRODUCT'
+              subtitle2 = words.slice(2).join(' ').toUpperCase() || ''
+            } else {
+              title = words[0]?.toUpperCase() || 'PRODUCT'
+            }
+          }
+        }
+        
+        // Extract features from description - improved pattern matching
+        let features = []
+        if (product.description) {
+          const desc = product.description.toLowerCase()
+          
+          // Define feature templates based on keywords found
+          const featureTemplates = {
+            'soft': ['Soft & Breathable', 'Soft & Comfortable', 'Soft Material'],
+            'breathable': ['Breathable Fabric', 'Breathable & Lightweight', 'Breathable Material'],
+            'cotton': ['Soft & Breathable Cotton Blend', 'Premium Cotton', 'Cotton Blend'],
+            'racerback': ['Classic Racerback Design', 'Racerback Style', 'Racerback Design'],
+            'moisture': ['Moisture-Wicking Properties', 'Moisture-Wicking Technology', 'Quick-Dry Technology'],
+            'versatile': ['Versatile Day-to-Night Style', 'Versatile Design', 'Versatile & Comfortable'],
+            'colors': ['Available in Multiple Colors', 'Multiple Color Options', 'Various Colors Available'],
+            'compression': ['Premium Compression Fabric', 'Compression Fit', '4-Way Stretch'],
+            'chlorine': ['Chlorine Resistant Fabric', 'Chlorine Resistant', 'Pool Resistant'],
+            'supportive': ['Supportive & Comfortable Fit', 'Supportive Design', 'Comfortable Fit'],
+            'stretch': ['4-Way Stretch for Freedom of Movement', 'Flexible Stretch', 'Freedom of Movement']
+          }
+          
+          // Check for keywords and add corresponding features
+          Object.keys(featureTemplates).forEach(keyword => {
+            if (desc.includes(keyword) && features.length < 5) {
+              const template = featureTemplates[keyword][0]
+              if (!features.includes(template)) {
+                features.push(template)
+              }
+            }
+          })
+          
+          // If still not enough, try to extract from sentences
+          if (features.length < 3) {
+            const sentences = product.description.split(/[.!?]/).filter(s => s.trim().length > 15 && s.trim().length < 100)
+            sentences.slice(0, 5 - features.length).forEach(s => {
+              let feature = s.trim()
+              // Capitalize first letter
+              feature = feature.charAt(0).toUpperCase() + feature.slice(1)
+              // Format: capitalize key words
+              feature = feature.replace(/\b(cotton|fabric|design|style|fit|comfortable|breathable|soft|moisture|wicking|versatile|colors?|stretch|compression)\b/gi, (match) => {
+                return match.charAt(0).toUpperCase() + match.slice(1).toLowerCase()
+              })
+              if (!features.includes(feature) && !features.some(f => f.toLowerCase().includes(feature.toLowerCase().substring(0, 10)))) {
+                features.push(feature)
+              }
+            })
+          }
+        }
+        
+        // Default features if none found - category-specific defaults
+        if (features.length === 0) {
+          if (product.category && product.category.toLowerCase().includes('street')) {
+            features = [
+              'Soft & Breathable Cotton Blend',
+              'Classic Racerback Design',
+              'Moisture-Wicking Properties',
+              'Versatile Day-to-Night Style',
+              'Available in Multiple Colors'
+            ]
+          } else if (product.category && product.category.toLowerCase().includes('fitness')) {
+            features = [
+              'Premium Compression Fabric',
+              'Moisture-Wicking Technology',
+              '4-Way Stretch for Freedom of Movement',
+              'Breathable & Lightweight',
+              'Perfect for Gym, Running & Training'
+            ]
+          } else if (product.category && product.category.toLowerCase().includes('sports')) {
+            features = [
+              'Chlorine Resistant Fabric',
+              'Quick-Dry Technology',
+              'Supportive & Comfortable Fit',
+              'Stylish Color Block Design',
+              'Ideal for Competitive Swimming'
+            ]
+          } else {
+            features = [
               'Premium Quality Materials',
               'Comfortable & Durable',
               'Perfect Fit Guaranteed',
               'Stylish Design',
               'Great Value'
             ]
+          }
+        }
+        
+        // Format description - uppercase key parts
+        let description = product.description || 'PREMIUM QUALITY PRODUCT DESIGNED FOR PERFORMANCE AND STYLE'
+        // Make description uppercase for hero section
+        description = description.toUpperCase()
         
         // Create CTA based on category
         const cta = product.category 
@@ -61,15 +172,9 @@ const Home = () => {
           title,
           subtitle,
           subtitle2,
-          description: product.description || 'PREMIUM QUALITY PRODUCT DESIGNED FOR PERFORMANCE AND STYLE',
+          description,
           image: product.image || '/images/placeholder.jpg',
-          features: features.length > 0 ? features : [
-            'Premium Quality Materials',
-            'Comfortable & Durable',
-            'Perfect Fit Guaranteed',
-            'Stylish Design',
-            'Great Value'
-          ],
+          features: features.slice(0, 5), // Limit to 5 features
           cta,
           price: `Starting at $${parseFloat(product.price).toFixed(2)}`,
           productId: product.id
@@ -168,9 +273,13 @@ const Home = () => {
               {slides.length > 0 && slides[currentSlide] ? (
                 <>
                   <div className="hero-text-wrapper">
-                    <div className="hero-text-small">{slides[currentSlide].subtitle}</div>
+                    {slides[currentSlide].subtitle && (
+                      <div className="hero-text-small">{slides[currentSlide].subtitle}</div>
+                    )}
                     <div className="hero-text-large">{slides[currentSlide].title}</div>
-                    <div className="hero-text-small">{slides[currentSlide].subtitle2}</div>
+                    {slides[currentSlide].subtitle2 && (
+                      <div className="hero-text-small">{slides[currentSlide].subtitle2}</div>
+                    )}
                     <div className="hero-orange-frame"></div>
                   </div>
                   <p className="hero-description">

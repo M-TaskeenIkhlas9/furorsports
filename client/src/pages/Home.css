@@ -88,20 +88,21 @@
 }
 
 .hero-text-small {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 3px;
-  opacity: 0.9;
+  letter-spacing: 2px;
+  opacity: 0.95;
+  margin-bottom: 0.25rem;
 }
 
 .hero-text-large {
-  font-size: 6rem;
+  font-size: 7rem;
   font-weight: 900;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 5px;
+  letter-spacing: 4px;
   line-height: 1;
   text-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
   background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
@@ -110,6 +111,7 @@
   background-clip: text;
   position: relative;
   z-index: 2;
+  margin: 0.5rem 0;
 }
 
 .hero-orange-frame {
@@ -138,14 +140,15 @@
 }
 
 .hero-description {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  max-width: 500px;
-  font-weight: 400;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.8;
+  max-width: 550px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 1.5rem;
+  letter-spacing: 1.5px;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
 }
 
 .hero-features {
@@ -158,30 +161,33 @@
 
 .hero-feature-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.85);
-  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.4rem 0;
+  line-height: 1.5;
 }
 
 .feature-check {
   color: #FF6B35;
   font-weight: 900;
-  font-size: 1.1rem;
-  min-width: 20px;
+  font-size: 1rem;
+  min-width: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 2px;
 }
 
 .hero-price {
-  font-size: 1.3rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 900;
   color: #FF6B35;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  margin-top: 0.5rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 
 .btn-hero-primary {
