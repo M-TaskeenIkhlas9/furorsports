@@ -1,6 +1,6 @@
-# Toledo Exporters Ecommerce Website
+# Furor Sport Ecommerce Website
 
-A full-stack ecommerce website for Toledo Exporters, featuring professional sports wear, fitness wear, and street wear products.
+A full-stack ecommerce website for Furor Sport, featuring professional sports wear, fitness wear, and street wear products.
 
 ## Features
 
@@ -243,7 +243,7 @@ Products are seeded automatically on first run. To add more products, you can:
 3. Modify the seed data in `server/database/db.js`
 
 ### Styling
-All styles are in CSS files within each component/page directory. The design follows a modern, clean aesthetic similar to the Toledo Exporters website.
+All styles are in CSS files within each component/page directory. The design follows a modern, clean aesthetic for Furor Sport.
 
 ## Troubleshooting
 
@@ -262,11 +262,11 @@ CORS is enabled for development. For production, configure CORS settings in `ser
 
 ## License
 
-This project is created for Toledo Exporters.
+This project is created for Furor Sport.
 
 ## Support
 
 For issues or questions, please contact:
-- Email: info@toledoexporters.com
+- Email: Furorsport1@gmail.com
 - WhatsApp: +92-330-8317171
 
