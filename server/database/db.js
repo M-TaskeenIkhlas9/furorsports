@@ -66,7 +66,7 @@ const createTables = () => {
         city TEXT NOT NULL,
         country TEXT NOT NULL,
         total_amount REAL NOT NULL,
-        status TEXT DEFAULT 'pending',
+        status TEXT DEFAULT 'processing',
         payment_intent_id TEXT,
         payment_status TEXT DEFAULT 'pending',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -129,6 +129,21 @@ const createTables = () => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
         UNIQUE(category_id, name)
+      )`, (err) => {
+        if (err) reject(err);
+      });
+
+      // Admin notifications table
+      db.run(`CREATE TABLE IF NOT EXISTS admin_notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        order_id INTEGER,
+        order_number TEXT,
+        read BOOLEAN DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
       )`, (err) => {
         if (err) reject(err);
       });

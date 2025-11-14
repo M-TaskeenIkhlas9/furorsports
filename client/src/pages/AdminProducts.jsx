@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import './AdminProducts.css';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const navigate = useNavigate();
@@ -97,6 +99,20 @@ const AdminProducts = () => {
       isMountedRef.current = false;
     };
   }, [location.pathname, fetchProducts, fetchCategories, navigate]);
+
+  // Filter products based on URL parameters
+  useEffect(() => {
+    const filter = searchParams.get('filter');
+    
+    if (filter === 'low-stock') {
+      // Show only products with stock < 10
+      const filtered = products.filter(product => (product.stock || 0) < 10);
+      setFilteredProducts(filtered);
+    } else {
+      // Show all products
+      setFilteredProducts(products);
+    }
+  }, [products, searchParams]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -496,7 +512,23 @@ const AdminProducts = () => {
           )}
 
           <div className="products-table-container">
-            <h2>All Products ({products.length})</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2>
+                {searchParams.get('filter') === 'low-stock'
+                  ? `Low Stock Items (${filteredProducts.length})`
+                  : `All Products (${filteredProducts.length})`
+                }
+              </h2>
+              {searchParams.get('filter') && (
+                <button 
+                  onClick={() => navigate('/admin/products')} 
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                >
+                  Show All Products
+                </button>
+              )}
+            </div>
             <div className="products-table">
               <table>
                 <thead>
@@ -511,12 +543,12 @@ const AdminProducts = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.length === 0 ? (
+                  {filteredProducts.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="no-products">No products found</td>
                     </tr>
                   ) : (
-                    products.map(product => (
+                    filteredProducts.map(product => (
                       <tr key={product.id}>
                         <td>{product.id}</td>
                         <td>

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../database/db');
+const { sendOrderConfirmationEmail } = require('../utils/emailService');
 
 // Initialize Stripe with error handling
 let stripe;
@@ -129,7 +130,7 @@ router.post('/verify-payment', async (req, res) => {
               `INSERT INTO orders (
                 order_number, customer_name, email, phone, address, city, country, 
                 total_amount, status, payment_intent_id, payment_status
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?, 'paid')`,
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'processing', ?, 'paid')`,
               [
                 orderNumber,
                 metadata.customerName,
@@ -174,6 +175,52 @@ router.post('/verify-payment', async (req, res) => {
                             if (err) {
                               return res.status(500).json({ error: err.message });
                             }
+                            
+                            // Send order confirmation email to customer (non-blocking)
+                            const shippingAddress = `${metadata.customerAddress}, ${metadata.customerCity}, ${metadata.customerCountry}`;
+                            const orderEmailData = {
+                              orderNumber,
+                              customerName: metadata.customerName,
+                              customerEmail: metadata.customerEmail,
+                              totalAmount,
+                              items: cartItems.map(item => ({
+                                name: item.name,
+                                quantity: item.quantity,
+                                price: item.price
+                              })),
+                              shippingAddress
+                            };
+                            
+                            sendOrderConfirmationEmail(orderEmailData).then(result => {
+                              if (result.success) {
+                                console.log('Order confirmation email sent to customer');
+                              } else {
+                                console.log('Order confirmation email failed:', result.error);
+                              }
+                            }).catch(err => {
+                              console.error('Error sending order confirmation email:', err);
+                            });
+                            
+                            // Create admin notification (non-blocking)
+                            db.run(
+                              `INSERT INTO admin_notifications (type, title, message, order_id, order_number)
+                               VALUES (?, ?, ?, ?, ?)`,
+                              [
+                                'new_order',
+                                'New Order Received',
+                                `New order ${orderNumber} from ${metadata.customerName} - Total: $${totalAmount.toFixed(2)}`,
+                                orderId,
+                                orderNumber
+                              ],
+                              (notifErr) => {
+                                if (notifErr) {
+                                  console.error('Error creating admin notification:', notifErr);
+                                } else {
+                                  console.log('Admin notification created for order:', orderNumber);
+                                }
+                              }
+                            );
+                            
                             res.json({
                               message: 'Order created successfully',
                               orderNumber,

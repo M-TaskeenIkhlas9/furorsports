@@ -247,19 +247,170 @@ router.put('/orders/:id/status', (req, res) => {
     return res.status(400).json({ error: 'Status is required' });
   }
   
-  db.run(
-    'UPDATE orders SET status = ? WHERE id = ?',
-    [status, id],
-    function(err) {
+  // Get current order to check if we need to adjust revenue
+  db.get('SELECT status, total_amount, payment_status FROM orders WHERE id = ?', [id], (err, order) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Update order status
+    db.run(
+      'UPDATE orders SET status = ? WHERE id = ?',
+      [status, id],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        if (this.changes === 0) {
+          return res.status(404).json({ error: 'Order not found' });
+        }
+        
+        // If order is canceled and was previously paid, revenue is already accounted for
+        // Revenue calculation is based on payment_status = 'paid', so canceling doesn't affect it
+        // The revenue will only count paid orders, so canceled orders won't be included
+        res.json({ success: true, message: 'Order status updated' });
+      }
+    );
+  });
+});
+
+// Get revenue analytics
+router.get('/revenue/analytics', (req, res) => {
+  const db = getDb();
+  const { period = 'daily', month, year } = req.query; // daily, weekly, monthly, and optional month/year
+  
+  let dateFormat, groupBy;
+  if (period === 'daily') {
+    dateFormat = "date(created_at)";
+    groupBy = "date(created_at)";
+  } else if (period === 'weekly') {
+    dateFormat = "strftime('%Y-W%W', created_at)";
+    groupBy = "strftime('%Y-W%W', created_at)";
+  } else if (period === 'monthly') {
+    dateFormat = "strftime('%Y-%m', created_at)";
+    groupBy = "strftime('%Y-%m', created_at)";
+  } else {
+    return res.status(400).json({ error: 'Invalid period. Use daily, weekly, or monthly' });
+  }
+  
+  // Build date filter for selected month/year
+  let dateFilter = '';
+  if (month && year) {
+    dateFilter = `AND strftime('%Y-%m', created_at) = '${year}-${String(month).padStart(2, '0')}'`;
+  }
+  
+  const query = `
+    SELECT 
+      ${dateFormat} as date,
+      SUM(total_amount) as revenue,
+      COUNT(*) as orders
+    FROM orders
+    WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled'))
+    ${dateFilter}
+    GROUP BY ${groupBy}
+    ORDER BY date DESC
+    LIMIT 30
+  `;
+  
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+});
+
+// Get revenue summary
+router.get('/revenue/summary', (req, res) => {
+  const db = getDb();
+  const { month, year } = req.query; // Optional: month (1-12) and year (YYYY)
+  
+  const summary = {};
+  
+  // Build date filter for selected month/year or current month
+  let monthFilter = '';
+  if (month && year) {
+    // Filter for specific month/year
+    const monthStr = String(month).padStart(2, '0');
+    monthFilter = `AND strftime('%Y-%m', created_at) = '${year}-${monthStr}'`;
+  } else {
+    // Default to current month
+    monthFilter = `AND created_at >= date('now', 'start of month')`;
+  }
+  
+      // Today's revenue
+      db.get(
+        `SELECT SUM(total_amount) as total, COUNT(*) as orders 
+         FROM orders 
+         WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled')) 
+         AND date(created_at) = date('now')`,
+        [],
+    (err, row) => {
       if (err) {
-        res.status(500).json({ error: err.message });
-        return;
+        return res.status(500).json({ error: err.message });
       }
-      if (this.changes === 0) {
-        res.status(404).json({ error: 'Order not found' });
-        return;
-      }
-      res.json({ success: true, message: 'Order status updated' });
+      summary.today = {
+        revenue: row.total || 0,
+        orders: row.orders || 0
+      };
+      
+      // This week's revenue
+      db.get(
+        `SELECT SUM(total_amount) as total, COUNT(*) as orders 
+         FROM orders 
+         WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled')) 
+         AND created_at >= date('now', '-7 days')`,
+        [],
+        (err, row) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          summary.week = {
+            revenue: row.total || 0,
+            orders: row.orders || 0
+          };
+          
+          // Selected month's revenue (or current month)
+          db.get(
+            `SELECT SUM(total_amount) as total, COUNT(*) as orders 
+             FROM orders 
+             WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled')) 
+             ${monthFilter}`,
+            [],
+            (err, row) => {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+              summary.month = {
+                revenue: row.total || 0,
+                orders: row.orders || 0
+              };
+              
+              // Total revenue
+              db.get(
+                `SELECT SUM(total_amount) as total, COUNT(*) as orders 
+                 FROM orders 
+                 WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled'))`,
+                [],
+                (err, row) => {
+                  if (err) {
+                    return res.status(500).json({ error: err.message });
+                  }
+                  summary.total = {
+                    revenue: row.total || 0,
+                    orders: row.orders || 0
+                  };
+                  
+                  res.json(summary);
+                }
+              );
+            }
+          );
+        }
+      );
     }
   );
 });
@@ -284,30 +435,41 @@ router.get('/dashboard/stats', (req, res) => {
       }
       stats.totalOrders = row.count;
       
-      // Total revenue
-      db.get('SELECT SUM(total_amount) as total FROM orders WHERE payment_status = "paid"', [], (err, row) => {
+      // Total revenue (only paid and not canceled)
+      db.get('SELECT SUM(total_amount) as total FROM orders WHERE payment_status = "paid" AND (status IS NULL OR (status != "canceled" AND status != "cancelled"))', [], (err, row) => {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
         stats.totalRevenue = row.total || 0;
         
-        // Low stock products
-        db.get('SELECT COUNT(*) as count FROM products WHERE stock < 10', [], (err, row) => {
-          if (err) {
-            return res.status(500).json({ error: err.message });
-          }
-          stats.lowStockProducts = row.count;
-          
-          // Pending orders
-          db.get('SELECT COUNT(*) as count FROM orders WHERE status = "pending"', [], (err, row) => {
+          // Low stock products
+          db.get('SELECT COUNT(*) as count FROM products WHERE stock < 10', [], (err, row) => {
             if (err) {
               return res.status(500).json({ error: err.message });
             }
-            stats.pendingOrders = row.count;
+            stats.lowStockProducts = row.count;
             
-            res.json(stats);
+            // Non-shipped orders (status is 'processing' - orders that haven't been shipped yet)
+            db.get(`SELECT COUNT(*) as count FROM orders 
+                    WHERE status = 'processing'`, [], (err, row) => {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+              stats.nonShippedOrders = row.count;
+              
+              // Non-delivered orders (status is NOT 'delivered' and NOT cancelled)
+              db.get(`SELECT COUNT(*) as count FROM orders 
+                      WHERE (status IS NULL OR status != 'delivered')
+                      AND (status IS NULL OR (status != 'cancelled' AND status != 'canceled'))`, [], (err, row) => {
+                if (err) {
+                  return res.status(500).json({ error: err.message });
+                }
+                stats.nonDeliveredOrders = row.count;
+                
+                res.json(stats);
+              });
+            });
           });
-        });
       });
     });
   });
@@ -403,6 +565,73 @@ router.post('/change-password', (req, res) => {
       }
     );
   });
+});
+
+// Get admin notifications
+router.get('/notifications', (req, res) => {
+  const db = getDb();
+  
+  db.all(
+    `SELECT * FROM admin_notifications 
+     ORDER BY created_at DESC 
+     LIMIT 50`,
+    [],
+    (err, notifications) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(notifications);
+    }
+  );
+});
+
+// Get unread notifications count
+router.get('/notifications/unread-count', (req, res) => {
+  const db = getDb();
+  
+  db.get(
+    `SELECT COUNT(*) as count FROM admin_notifications WHERE read = 0`,
+    [],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ count: row.count });
+    }
+  );
+});
+
+// Mark notification as read
+router.put('/notifications/:id/read', (req, res) => {
+  const db = getDb();
+  const { id } = req.params;
+  
+  db.run(
+    `UPDATE admin_notifications SET read = 1 WHERE id = ?`,
+    [id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ success: true });
+    }
+  );
+});
+
+// Mark all notifications as read
+router.put('/notifications/read-all', (req, res) => {
+  const db = getDb();
+  
+  db.run(
+    `UPDATE admin_notifications SET read = 1 WHERE read = 0`,
+    [],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ success: true });
+    }
+  );
 });
 
 module.exports = router;

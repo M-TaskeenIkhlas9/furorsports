@@ -24,7 +24,7 @@ router.post('/create', (req, res) => {
     // Insert order
     db.run(
       `INSERT INTO orders (order_number, customer_name, email, phone, address, city, country, total_amount, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'processing')`,
       [
         orderNumber,
         customerInfo.name,

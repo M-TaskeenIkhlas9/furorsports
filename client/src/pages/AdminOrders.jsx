@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './AdminOrders.css';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,6 +17,30 @@ const AdminOrders = () => {
     }
     fetchOrders();
   }, [navigate]);
+
+  useEffect(() => {
+    const statusFilter = searchParams.get('status');
+    const customFilter = searchParams.get('filter');
+    
+    if (customFilter === 'non-delivered') {
+      // Show orders that are NOT delivered (processing and shipped), excluding cancelled
+      const filtered = orders.filter(order => {
+        const status = order.status?.toLowerCase();
+        return (status === 'processing' || status === 'shipped') 
+          && status !== 'cancelled' 
+          && status !== 'canceled';
+      });
+      setFilteredOrders(filtered);
+    } else if (statusFilter) {
+      // Filter by exact status match
+      const filtered = orders.filter(order => 
+        order.status?.toLowerCase() === statusFilter.toLowerCase()
+      );
+      setFilteredOrders(filtered);
+    } else {
+      setFilteredOrders(orders);
+    }
+  }, [orders, searchParams]);
 
   const fetchOrders = async () => {
     try {
@@ -51,7 +77,7 @@ const AdminOrders = () => {
       const data = await response.json();
       
       if (data.success || response.ok) {
-        fetchOrders();
+        await fetchOrders();
         if (selectedOrder && selectedOrder.id === id) {
           fetchOrderDetails(id);
         }
@@ -94,12 +120,23 @@ const AdminOrders = () => {
               <h1>Order Management</h1>
               <p className="admin-subtitle">View and manage customer orders</p>
             </div>
-            <button 
-              onClick={() => navigate('/admin/dashboard')} 
-              className="btn btn-outline"
-            >
-              ← Dashboard
-            </button>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              {(searchParams.get('status') || searchParams.get('filter')) && (
+                <button 
+                  onClick={() => navigate('/admin/orders')} 
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                >
+                  Show All Orders
+                </button>
+              )}
+              <button 
+                onClick={() => navigate('/admin/dashboard')} 
+                className="btn btn-outline"
+              >
+                ← Dashboard
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -108,7 +145,14 @@ const AdminOrders = () => {
         <div className="container">
           <div className="orders-layout">
             <div className="orders-list">
-              <h2>All Orders ({orders.length})</h2>
+              <h2>
+                {searchParams.get('filter') === 'non-delivered'
+                  ? `Non-Delivered Orders (${filteredOrders.length})`
+                  : searchParams.get('status') 
+                    ? `${searchParams.get('status').charAt(0).toUpperCase() + searchParams.get('status').slice(1)} Orders (${filteredOrders.length})`
+                    : `All Orders (${filteredOrders.length})`
+                }
+              </h2>
               <div className="orders-table">
                 <table>
                   <thead>
@@ -123,12 +167,12 @@ const AdminOrders = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.length === 0 ? (
+                    {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="no-orders">No orders found</td>
                       </tr>
                     ) : (
-                      orders.map(order => (
+                      filteredOrders.map(order => (
                         <tr 
                           key={order.id}
                           className={selectedOrder?.id === order.id ? 'selected' : ''}

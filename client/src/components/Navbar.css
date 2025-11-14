@@ -289,37 +289,6 @@
   flex-shrink: 0;
 }
 
-/* Social Media Icons */
-.social-icons {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding-right: 1rem;
-  border-right: 1px solid rgba(102, 102, 102, 0.4);
-}
-
-.social-icon {
-  color: #666666;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  opacity: 0.9;
-}
-
-.social-icon:hover {
-  color: #888888;
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.social-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
 /* Admin Link */
 .admin-link {
   position: relative;
@@ -513,15 +482,6 @@
     gap: 1rem;
   }
   
-  .social-icons {
-    border-right: none;
-    border-top: 1px solid rgba(102, 102, 102, 0.4);
-    padding-top: 1rem;
-    padding-right: 0;
-    padding-bottom: 1rem;
-    width: 100%;
-    justify-content: center;
-  }
   
   .admin-link,
   .cart-link {

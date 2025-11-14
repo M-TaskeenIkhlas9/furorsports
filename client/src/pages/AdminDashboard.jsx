@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 
@@ -14,6 +15,11 @@ const AdminDashboard = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const bellRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +30,32 @@ const AdminDashboard = () => {
     }
 
     fetchStats();
-  }, [navigate]);
+    fetchNotifications();
+    fetchUnreadCount();
+    
+    // Poll for new notifications every 30 seconds
+    const notificationInterval = setInterval(() => {
+      fetchNotifications();
+      fetchUnreadCount();
+    }, 30000);
+    
+    // Close notifications when clicking outside
+    const handleClickOutside = (event) => {
+      if (showNotifications && 
+          bellRef.current &&
+          !bellRef.current.contains(event.target) && 
+          !event.target.closest('.notifications-dropdown')) {
+        setShowNotifications(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      clearInterval(notificationInterval);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [navigate, showNotifications]);
 
   const fetchStats = async () => {
     try {
@@ -35,6 +66,46 @@ const AdminDashboard = () => {
       console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('/api/admin/notifications');
+      const data = await response.json();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await fetch('/api/admin/notifications/unread-count');
+      const data = await response.json();
+      setUnreadCount(data.count);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      await fetch(`/api/admin/notifications/${id}/read`, { method: 'PUT' });
+      fetchNotifications();
+      fetchUnreadCount();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await fetch('/api/admin/notifications/read-all', { method: 'PUT' });
+      fetchNotifications();
+      fetchUnreadCount();
+    } catch (error) {
+      console.error('Error marking all as read:', error);
     }
   };
 
@@ -105,9 +176,76 @@ const AdminDashboard = () => {
         <div className="container">
           <div className="admin-header-content">
             <h1>Admin Dashboard</h1>
-            <button onClick={handleLogout} className="btn btn-outline">
-              Logout
-            </button>
+            <div className="admin-header-actions">
+              <div className="notifications-container">
+                <button 
+                  ref={bellRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (bellRef.current) {
+                      const rect = bellRef.current.getBoundingClientRect();
+                      setDropdownPosition({
+                        top: rect.bottom + 10,
+                        right: window.innerWidth - rect.right
+                      });
+                    }
+                    setShowNotifications(!showNotifications);
+                  }} 
+                  className="notification-bell"
+                  title="Notifications"
+                >
+                  🔔
+                  {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+                </button>
+                {showNotifications && createPortal(
+                  <div 
+                    className="notifications-dropdown"
+                    style={{
+                      top: `${dropdownPosition.top}px`,
+                      right: `${dropdownPosition.right}px`
+                    }}
+                  >
+                    <div className="notifications-header">
+                      <h3>Notifications</h3>
+                      {unreadCount > 0 && (
+                        <button onClick={markAllAsRead} className="mark-all-read">
+                          Mark all as read
+                        </button>
+                      )}
+                    </div>
+                    <div className="notifications-list">
+                      {notifications.length === 0 ? (
+                        <p className="no-notifications">No notifications</p>
+                      ) : (
+                        notifications.map(notif => (
+                          <div 
+                            key={notif.id} 
+                            className={`notification-item ${notif.read ? 'read' : 'unread'}`}
+                            onClick={() => {
+                              if (!notif.read) markAsRead(notif.id);
+                              if (notif.order_id) navigate('/admin/orders');
+                            }}
+                          >
+                            <div className="notification-content">
+                              <h4>{notif.title}</h4>
+                              <p>{notif.message}</p>
+                              <span className="notification-time">
+                                {new Date(notif.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                            {!notif.read && <div className="unread-indicator"></div>}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>,
+                  document.body
+                )}
+              </div>
+              <button onClick={handleLogout} className="btn btn-outline">
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -115,7 +253,11 @@ const AdminDashboard = () => {
       <div className="admin-content">
         <div className="container">
           <div className="admin-stats-grid">
-            <div className="stat-card">
+            <div 
+              className="stat-card clickable"
+              onClick={() => navigate('/admin/products')}
+              title="Click to view all products"
+            >
               <div className="stat-icon">📦</div>
               <div className="stat-info">
                 <h3>{stats?.totalProducts || 0}</h3>
@@ -123,7 +265,11 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="stat-card">
+            <div 
+              className="stat-card clickable"
+              onClick={() => navigate('/admin/orders')}
+              title="Click to view all orders"
+            >
               <div className="stat-icon">🛒</div>
               <div className="stat-info">
                 <h3>{stats?.totalOrders || 0}</h3>
@@ -131,7 +277,11 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="stat-card">
+            <div 
+              className="stat-card clickable"
+              onClick={() => navigate('/admin/revenue')}
+              title="Click to view revenue analytics"
+            >
               <div className="stat-icon">💰</div>
               <div className="stat-info">
                 <h3>${(stats?.totalRevenue || 0).toFixed(2)}</h3>
@@ -139,7 +289,11 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="stat-card">
+            <div 
+              className="stat-card clickable"
+              onClick={() => navigate('/admin/products?filter=low-stock')}
+              title="Click to view low stock items"
+            >
               <div className="stat-icon">⚠️</div>
               <div className="stat-info">
                 <h3>{stats?.lowStockProducts || 0}</h3>
@@ -147,11 +301,27 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="stat-card">
-              <div className="stat-icon">⏳</div>
+            <div 
+              className="stat-card clickable"
+              onClick={() => navigate('/admin/orders?status=processing')}
+              title="Click to view non-shipped orders"
+            >
+              <div className="stat-icon">📦</div>
               <div className="stat-info">
-                <h3>{stats?.pendingOrders || 0}</h3>
-                <p>Pending Orders</p>
+                <h3>{stats?.nonShippedOrders || 0}</h3>
+                <p>Non-Shipped Orders</p>
+              </div>
+            </div>
+
+            <div 
+              className="stat-card clickable"
+              onClick={() => navigate('/admin/orders?filter=non-delivered')}
+              title="Click to view non-delivered orders"
+            >
+              <div className="stat-icon">🚚</div>
+              <div className="stat-info">
+                <h3>{stats?.nonDeliveredOrders || 0}</h3>
+                <p>Non-Delivered Orders</p>
               </div>
             </div>
           </div>
