@@ -151,14 +151,14 @@ router.post('/verify-payment', async (req, res) => {
 
                 // Insert order items
                 const stmt = db.prepare(
-                  'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)'
+                  'INSERT INTO order_items (order_id, product_id, quantity, price, size, color) VALUES (?, ?, ?, ?, ?, ?)'
                 );
 
                 let itemsProcessed = 0;
                 let hasError = false;
                 
                 cartItems.forEach(item => {
-                  stmt.run([orderId, item.product_id, item.quantity, item.price], (err) => {
+                  stmt.run([orderId, item.product_id, item.quantity, item.price, item.size || null, item.color || null], (err) => {
                     if (err && !hasError) {
                       hasError = true;
                       stmt.finalize(() => {

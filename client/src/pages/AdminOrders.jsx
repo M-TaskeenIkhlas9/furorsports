@@ -107,6 +107,265 @@ const AdminOrders = () => {
     }
   };
 
+  const exportShippingLabel = () => {
+    if (!selectedOrder) return;
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    
+    // Format the shipping label content with images
+    const itemsList = selectedOrder.items?.map((item, index) => {
+      // Handle both relative and absolute image URLs
+      let imageUrl = item.image || 'https://via.placeholder.com/80?text=No+Image';
+      if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+        // If it's a relative path, make it absolute
+        imageUrl = window.location.origin + imageUrl;
+      }
+      
+      return `
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; page-break-inside: avoid;">
+          <img 
+            src="${imageUrl}" 
+            alt="${item.name}"
+            style="width: 40px; height: 40px; object-fit: cover; border-radius: 3px; border: 1px solid #ccc; flex-shrink: 0;"
+            onerror="this.onerror=null; this.src='https://via.placeholder.com/40?text=No+Image'"
+          />
+          <div style="flex: 1;">
+            <div style="font-weight: bold; margin-bottom: 2px; font-size: 13px;">${index + 1}. ${item.name}</div>
+            <div style="font-size: 11px; color: #666;">
+              Qty: ${item.quantity} × $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<p>No items</p>';
+
+    const shippingLabelHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Shipping Label - ${selectedOrder.order_number}</title>
+          <style>
+            @media print {
+              @page {
+                size: A4;
+                margin: 0.5cm;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+              }
+            }
+            body {
+              font-family: Arial, sans-serif;
+              padding: 15px;
+              max-width: 700px;
+              margin: 0 auto;
+              background: white;
+              color: #000;
+            }
+            .shipping-label {
+              border: 2px solid #000;
+              padding: 15px;
+              margin-bottom: 15px;
+              page-break-inside: avoid;
+            }
+            .label-header {
+              border-bottom: 2px solid #000;
+              padding-bottom: 8px;
+              margin-bottom: 12px;
+            }
+            .label-header h1 {
+              margin: 0;
+              font-size: 20px;
+              font-weight: bold;
+            }
+            .label-section {
+              margin-bottom: 12px;
+            }
+            .label-section h3 {
+              margin: 0 0 6px 0;
+              font-size: 12px;
+              font-weight: bold;
+              text-transform: uppercase;
+              border-bottom: 1px solid #ccc;
+              padding-bottom: 4px;
+            }
+            .label-section p {
+              margin: 3px 0;
+              font-size: 13px;
+              line-height: 1.5;
+            }
+            .shipping-address {
+              font-size: 14px;
+              font-weight: bold;
+              line-height: 1.6;
+            }
+            .order-items {
+              font-size: 13px;
+              line-height: 1.6;
+            }
+            .order-item-with-image {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              margin-bottom: 12px;
+              padding: 8px;
+              border: 1px solid #ddd;
+              border-radius: 5px;
+              page-break-inside: avoid;
+            }
+            .order-item-image {
+              width: 60px;
+              height: 60px;
+              object-fit: cover;
+              border-radius: 4px;
+              border: 1px solid #ccc;
+              flex-shrink: 0;
+            }
+            .order-item-details {
+              flex: 1;
+            }
+            @media print {
+              .order-item-with-image {
+                border: 1px solid #000;
+              }
+              .order-item-image {
+                border: 1px solid #000;
+              }
+            }
+            .order-info-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+              margin-top: 12px;
+            }
+            .info-box {
+              border: 1px solid #ccc;
+              padding: 8px;
+              background: #f9f9f9;
+            }
+            .info-box strong {
+              display: block;
+              margin-bottom: 4px;
+              font-size: 11px;
+              text-transform: uppercase;
+            }
+            .barcode-area {
+              text-align: center;
+              margin-top: 15px;
+              padding: 10px;
+              border: 1px dashed #000;
+              font-family: 'Courier New', monospace;
+              font-size: 16px;
+              font-weight: bold;
+              letter-spacing: 2px;
+            }
+            @media print {
+              .no-print {
+                display: none;
+              }
+              .shipping-label {
+                border: 2px solid #000;
+              }
+            }
+            .print-button {
+              background: #3b82f6;
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              font-size: 16px;
+              cursor: pointer;
+              border-radius: 5px;
+              margin: 10px;
+            }
+            .print-button:hover {
+              background: #2563eb;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+            <button class="print-button" onclick="window.print()">🖨️ Print Shipping Label</button>
+          </div>
+          
+          <div class="shipping-label">
+            <div class="label-header">
+              <h1>SHIPPING LABEL</h1>
+            </div>
+            
+            <div class="label-section">
+              <h3>Ship To:</h3>
+              <div class="shipping-address">
+                <p><strong>${selectedOrder.customer_name}</strong></p>
+                <p>${selectedOrder.address}</p>
+                <p>${selectedOrder.city}, ${selectedOrder.country}</p>
+                <p>Phone: ${selectedOrder.phone || 'N/A'}</p>
+                <p>Email: ${selectedOrder.email}</p>
+              </div>
+            </div>
+            
+            <div class="order-info-grid">
+              <div class="info-box">
+                <strong>Order Number</strong>
+                <div style="font-size: 18px; font-weight: bold; margin-top: 5px;">${selectedOrder.order_number}</div>
+              </div>
+              <div class="info-box">
+                <strong>Order Date</strong>
+                <div style="margin-top: 5px;">${new Date(selectedOrder.created_at).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}</div>
+              </div>
+              <div class="info-box">
+                <strong>Total Amount</strong>
+                <div style="font-size: 16px; font-weight: bold; margin-top: 5px;">$${selectedOrder.total_amount.toFixed(2)}</div>
+              </div>
+              <div class="info-box">
+                <strong>Payment Status</strong>
+                <div style="margin-top: 5px; text-transform: uppercase;">${selectedOrder.payment_status || 'N/A'}</div>
+              </div>
+            </div>
+            
+            <div class="label-section">
+              <h3>Order Items:</h3>
+              <div class="order-items">
+                ${itemsList}
+              </div>
+            </div>
+            
+            <div class="label-section">
+              <h3>Total Items:</h3>
+              <p style="font-size: 16px; font-weight: bold;">
+                ${selectedOrder.items?.reduce((sum, item) => sum + item.quantity, 0) || 0} item(s)
+              </p>
+            </div>
+            
+            <div class="barcode-area">
+              ORDER: ${selectedOrder.order_number}
+            </div>
+          </div>
+          
+          <script>
+            // Auto-print when window loads (optional - commented out)
+            // window.onload = function() {
+            //   window.print();
+            // }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(shippingLabelHTML);
+    printWindow.document.close();
+    
+    // Wait for content to load, then focus for printing
+    setTimeout(() => {
+      printWindow.focus();
+    }, 250);
+  };
+
   if (loading) {
     return <div className="admin-loading">Loading orders...</div>;
   }
@@ -220,12 +479,21 @@ const AdminOrders = () => {
               <div className="order-details">
                 <div className="order-details-header">
                   <h2>Order Details</h2>
-                  <button 
-                    onClick={() => setSelectedOrder(null)}
-                    className="btn-close"
-                  >
-                    ×
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <button 
+                      onClick={exportShippingLabel}
+                      className="btn-export"
+                      title="Export/Print Shipping Label"
+                    >
+                      📦 Print
+                    </button>
+                    <button 
+                      onClick={() => setSelectedOrder(null)}
+                      className="btn-close"
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
 
                 <div className="order-info-section">
@@ -298,6 +566,12 @@ const AdminOrders = () => {
                         />
                         <div className="item-details">
                           <h4>{item.name}</h4>
+                          {(item.size || item.color) && (
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                              {item.size && <span style={{ fontSize: '0.85rem', color: '#93c5fd' }}>Size: {item.size}</span>}
+                              {item.color && <span style={{ fontSize: '0.85rem', color: '#93c5fd' }}>Color: {item.color}</span>}
+                            </div>
+                          )}
                           <p>Quantity: {item.quantity} × ${item.price.toFixed(2)}</p>
                         </div>
                         <div className="item-total">

@@ -221,6 +221,32 @@
   line-height: 1.2;
 }
 
+.btn-export {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: auto;
+}
+
+.btn-export:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #bfdbfe;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
 .btn-close {
   background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;

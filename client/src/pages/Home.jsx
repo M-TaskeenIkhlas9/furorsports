@@ -455,6 +455,9 @@ const Home = () => {
                 {products.slice(productIndex, productIndex + 3).map(product => (
                   <div key={product.id} className="product-card">
                     <div className="product-image">
+                      {product.sale_price && product.sale_price < product.price && (
+                        <div className="product-sale-badge-overlay">SALE</div>
+                      )}
                       <img 
                         src={product.image || '/placeholder-product.jpg'} 
                         alt={product.name}
@@ -465,7 +468,17 @@ const Home = () => {
                     </div>
                     <div className="product-info">
                       <h3>{product.name}</h3>
-                      <p className="product-price">${product.price.toFixed(2)}</p>
+                      <div className="product-price-container">
+                        {product.sale_price && product.sale_price < product.price ? (
+                          <>
+                            <span className="product-price-sale">{product.sale_price.toFixed(2)}</span>
+                            <span className="product-price-original">{product.price.toFixed(2)}</span>
+                            <span className="sale-badge">SALE</span>
+                          </>
+                        ) : (
+                          <span className="product-price">{product.price.toFixed(2)}</span>
+                        )}
+                      </div>
                       <Link to={`/product/${product.id}`} className="btn btn-outline">
                         Show Details
                       </Link>

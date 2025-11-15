@@ -42,6 +42,34 @@ const createTables = () => {
 
       // Add featured column if it doesn't exist (for existing databases)
       db.run(`ALTER TABLE products ADD COLUMN featured INTEGER DEFAULT 0`, () => {});
+      // Add sale_price column if it doesn't exist (for existing databases)
+      db.run(`ALTER TABLE products ADD COLUMN sale_price REAL`, () => {});
+
+      // Product images table (for multiple images per product)
+      db.run(`CREATE TABLE IF NOT EXISTS product_images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        image_url TEXT NOT NULL,
+        display_order INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )`, (err) => {
+        if (err) reject(err);
+      });
+
+      // Product variants table (for sizes and colors)
+      db.run(`CREATE TABLE IF NOT EXISTS product_variants (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        size TEXT,
+        color TEXT,
+        stock INTEGER DEFAULT 0,
+        price_adjustment REAL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )`, (err) => {
+        if (err) reject(err);
+      });
 
       // Cart table
       db.run(`CREATE TABLE IF NOT EXISTS cart (
@@ -49,11 +77,17 @@ const createTables = () => {
         session_id TEXT NOT NULL,
         product_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL DEFAULT 1,
+        size TEXT,
+        color TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (product_id) REFERENCES products(id)
       )`, (err) => {
         if (err) reject(err);
       });
+
+      // Add size and color columns to cart if they don't exist
+      db.run(`ALTER TABLE cart ADD COLUMN size TEXT`, () => {});
+      db.run(`ALTER TABLE cart ADD COLUMN color TEXT`, () => {});
 
       // Orders table
       db.run(`CREATE TABLE IF NOT EXISTS orders (
@@ -85,11 +119,17 @@ const createTables = () => {
         product_id INTEGER NOT NULL,
         quantity INTEGER NOT NULL,
         price REAL NOT NULL,
+        size TEXT,
+        color TEXT,
         FOREIGN KEY (order_id) REFERENCES orders(id),
         FOREIGN KEY (product_id) REFERENCES products(id)
       )`, (err) => {
         if (err) reject(err);
       });
+
+      // Add size and color columns to order_items if they don't exist
+      db.run(`ALTER TABLE order_items ADD COLUMN size TEXT`, () => {});
+      db.run(`ALTER TABLE order_items ADD COLUMN color TEXT`, () => {});
 
       // Newsletter table
       db.run(`CREATE TABLE IF NOT EXISTS newsletter (

@@ -10,9 +10,15 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
+  const [selectedSize, setSelectedSize] = useState('')
+  const [selectedColor, setSelectedColor] = useState('')
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   useEffect(() => {
     fetchProduct()
+    setCurrentImageIndex(0)
+    setSelectedSize('')
+    setSelectedColor('')
   }, [id])
 
   const fetchProduct = async () => {
@@ -21,6 +27,8 @@ const ProductDetail = () => {
       if (response.ok) {
         const data = await response.json()
         setProduct(data)
+        // Reset to first image when product changes
+        setCurrentImageIndex(0)
       } else {
         navigate('/products')
       }
@@ -45,7 +53,9 @@ const ProductDetail = () => {
         body: JSON.stringify({
           sessionId,
           productId: parseInt(id),
-          quantity
+          quantity,
+          size: selectedSize || null,
+          color: selectedColor || null
         })
       })
 
@@ -55,6 +65,18 @@ const ProductDetail = () => {
       }
     } catch (error) {
       alert('Error adding to cart. Please try again.')
+    }
+  }
+
+  const nextImage = () => {
+    if (product?.images && product.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % product.images.length)
+    }
+  }
+
+  const prevImage = () => {
+    if (product?.images && product.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length)
     }
   }
 
@@ -79,24 +101,120 @@ const ProductDetail = () => {
       <div className="container">
         <div className="product-detail">
           <div className="product-image-section">
-            <img 
-              src={product.image || '/placeholder-product.jpg'} 
-              alt={product.name}
-              onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/500x500?text=Product'
-              }}
-            />
+            {product.images && product.images.length > 0 ? (
+              <div className="image-carousel">
+                {product.sale_price && product.sale_price < product.price && (
+                  <div className="product-sale-badge-overlay-detail">SALE</div>
+                )}
+                <img 
+                  src={product.images[currentImageIndex] || '/placeholder-product.jpg'} 
+                  alt={product.name}
+                  className="main-product-image"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/500x500?text=Product'
+                  }}
+                />
+                {product.images.length > 1 && (
+                  <>
+                    <button 
+                      className="carousel-arrow carousel-arrow-left"
+                      onClick={prevImage}
+                      aria-label="Previous image"
+                    >
+                      ‹
+                    </button>
+                    <button 
+                      className="carousel-arrow carousel-arrow-right"
+                      onClick={nextImage}
+                      aria-label="Next image"
+                    >
+                      ›
+                    </button>
+                    <div className="image-indicators">
+                      {product.images.map((_, index) => (
+                        <span
+                          key={index}
+                          className={`indicator ${index === currentImageIndex ? 'active' : ''}`}
+                          onClick={() => setCurrentImageIndex(index)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div style={{ position: 'relative' }}>
+                {product.sale_price && product.sale_price < product.price && (
+                  <div className="product-sale-badge-overlay-detail">SALE</div>
+                )}
+                <img 
+                  src={product.image || '/placeholder-product.jpg'} 
+                  alt={product.name}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/500x500?text=Product'
+                  }}
+                />
+              </div>
+            )}
           </div>
           
           <div className="product-info-section">
             <h1>{product.name}</h1>
             <p className="product-category">{product.category} {product.subcategory && `> ${product.subcategory}`}</p>
-            <p className="product-price">${product.price.toFixed(2)}</p>
+            <div className="product-price-container">
+              {product.sale_price && product.sale_price < product.price ? (
+                <>
+                  <span className="product-price-sale">{product.sale_price.toFixed(2)}</span>
+                  <span className="product-price-original">{product.price.toFixed(2)}</span>
+                  <span className="sale-badge">SALE</span>
+                </>
+              ) : (
+                <span className="product-price">{product.price.toFixed(2)}</span>
+              )}
+            </div>
             
             <div className="product-description">
               <h3>Description</h3>
               <p>{product.description || 'No description available.'}</p>
             </div>
+
+            {/* Size Selection */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="product-option">
+                <label>Size:</label>
+                <div className="option-buttons">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      className={`option-btn ${selectedSize === size ? 'selected' : ''}`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Color Selection */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="product-option">
+                <label>Color:</label>
+                <div className="option-buttons">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color}
+                      className={`option-btn color-btn ${selectedColor === color ? 'selected' : ''}`}
+                      onClick={() => setSelectedColor(color)}
+                      style={{ backgroundColor: color.toLowerCase() }}
+                      title={color}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="product-actions">
               <div className="quantity-selector">

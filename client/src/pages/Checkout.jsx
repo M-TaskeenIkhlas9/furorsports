@@ -62,7 +62,9 @@ const Checkout = () => {
       name: item.name,
       description: item.description || '',
       quantity: item.quantity,
-      price: item.price
+      price: item.price,
+      size: item.size || null,
+      color: item.color || null
     }))
 
     try {

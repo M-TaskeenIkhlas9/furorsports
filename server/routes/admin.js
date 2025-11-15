@@ -118,16 +118,16 @@ router.get('/products/:id', (req, res) => {
 // Add new product
 router.post('/products', (req, res) => {
   const db = getDb();
-  const { name, description, price, image, category, subcategory, stock, featured } = req.body;
+  const { name, description, price, sale_price, image, category, subcategory, stock, featured } = req.body;
   
   if (!name || !price || !category) {
     return res.status(400).json({ error: 'Name, price, and category are required' });
   }
   
   db.run(
-    `INSERT INTO products (name, description, price, image, category, subcategory, stock, featured) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [name, description || '', price, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0],
+    `INSERT INTO products (name, description, price, sale_price, image, category, subcategory, stock, featured) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -146,13 +146,13 @@ router.post('/products', (req, res) => {
 router.put('/products/:id', (req, res) => {
   const db = getDb();
   const { id } = req.params;
-  const { name, description, price, image, category, subcategory, stock, featured } = req.body;
+  const { name, description, price, sale_price, image, category, subcategory, stock, featured } = req.body;
   
   db.run(
     `UPDATE products 
-     SET name = ?, description = ?, price = ?, image = ?, category = ?, subcategory = ?, stock = ?, featured = ?
+     SET name = ?, description = ?, price = ?, sale_price = ?, image = ?, category = ?, subcategory = ?, stock = ?, featured = ?
      WHERE id = ?`,
-    [name, description, price, image, category, subcategory, stock, featured ? 1 : 0, id],
+    [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0, id],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -224,7 +224,8 @@ router.get('/orders/:id', (req, res) => {
       `SELECT oi.*, p.name, p.image 
        FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
-       WHERE oi.order_id = ?`,
+       WHERE oi.order_id = ?
+       ORDER BY oi.id`,
       [id],
       (err, items) => {
         if (err) {
@@ -628,6 +629,107 @@ router.put('/notifications/read-all', (req, res) => {
     function(err) {
       if (err) {
         return res.status(500).json({ error: err.message });
+      }
+      res.json({ success: true });
+    }
+  );
+});
+
+// Add product image
+router.post('/products/:id/images', (req, res) => {
+  const db = getDb();
+  const { id } = req.params;
+  const { imageUrl, displayOrder = 0 } = req.body;
+  
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+  
+  db.run(
+    'INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)',
+    [id, imageUrl, displayOrder],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
+// Delete product image
+router.delete('/products/:id/images/:imageId', (req, res) => {
+  const db = getDb();
+  const { id, imageId } = req.params;
+  
+  db.run(
+    'DELETE FROM product_images WHERE id = ? AND product_id = ?',
+    [imageId, id],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ success: true });
+    }
+  );
+});
+
+// Add product variant (size/color)
+router.post('/products/:id/variants', (req, res) => {
+  const db = getDb();
+  const { id } = req.params;
+  const { size, color, stock = 0, priceAdjustment = 0 } = req.body;
+  
+  if (!size && !color) {
+    return res.status(400).json({ error: 'Size or color is required' });
+  }
+  
+  db.run(
+    'INSERT INTO product_variants (product_id, size, color, stock, price_adjustment) VALUES (?, ?, ?, ?, ?)',
+    [id, size || null, color || null, stock, priceAdjustment],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
+// Update product variant
+router.put('/products/:id/variants/:variantId', (req, res) => {
+  const db = getDb();
+  const { id, variantId } = req.params;
+  const { size, color, stock, priceAdjustment } = req.body;
+  
+  db.run(
+    'UPDATE product_variants SET size = ?, color = ?, stock = ?, price_adjustment = ? WHERE id = ? AND product_id = ?',
+    [size || null, color || null, stock, priceAdjustment, variantId, id],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ success: true });
+    }
+  );
+});
+
+// Delete product variant
+router.delete('/products/:id/variants/:variantId', (req, res) => {
+  const db = getDb();
+  const { id, variantId } = req.params;
+  
+  db.run(
+    'DELETE FROM product_variants WHERE id = ? AND product_id = ?',
+    [variantId, id],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
       }
       res.json({ success: true });
     }

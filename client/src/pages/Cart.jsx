@@ -32,7 +32,7 @@ const Cart = () => {
     }
   }
 
-  const updateQuantity = async (productId, newQuantity) => {
+  const updateQuantity = async (cartItemId, newQuantity) => {
     const sessionId = localStorage.getItem('sessionId')
     
     try {
@@ -41,7 +41,7 @@ const Cart = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
-          productId,
+          cartItemId,
           quantity: newQuantity
         })
       })
@@ -54,7 +54,7 @@ const Cart = () => {
     }
   }
 
-  const removeItem = async (productId) => {
+  const removeItem = async (cartItemId) => {
     const sessionId = localStorage.getItem('sessionId')
     
     try {
@@ -63,7 +63,7 @@ const Cart = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
-          productId
+          cartItemId
         })
       })
 
@@ -118,13 +118,28 @@ const Cart = () => {
                     <Link to={`/product/${item.product_id}`}>
                       <h3>{item.name}</h3>
                     </Link>
-                    <p className="cart-item-price">${item.price.toFixed(2)}</p>
+                    {(item.size || item.color) && (
+                      <div className="cart-item-variants">
+                        {item.size && <span className="variant-badge">Size: {item.size}</span>}
+                        {item.color && <span className="variant-badge">Color: {item.color}</span>}
+                      </div>
+                    )}
+                    <div className="cart-item-price-container">
+                      {item.sale_price && item.sale_price < item.original_price ? (
+                        <>
+                          <span className="cart-price-sale">${item.price.toFixed(2)}</span>
+                          <span className="cart-price-original">${item.original_price.toFixed(2)}</span>
+                        </>
+                      ) : (
+                        <span className="cart-item-price">${item.price.toFixed(2)}</span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="cart-item-quantity">
-                    <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)}>-</button>
+                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)}>+</button>
+                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
                   </div>
 
                   <div className="cart-item-total">
@@ -133,7 +148,7 @@ const Cart = () => {
 
                   <button 
                     className="remove-btn"
-                    onClick={() => removeItem(item.product_id)}
+                    onClick={() => removeItem(item.id)}
                   >
                     ×
                   </button>

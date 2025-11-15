@@ -92,6 +92,42 @@
   font-size: 0.9rem;
 }
 
+.cart-item-price-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cart-price-sale {
+  color: #ef4444;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.cart-price-original {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  text-decoration: line-through;
+}
+
+.cart-item-variants {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  flex-wrap: wrap;
+}
+
+.variant-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #eff6ff;
+  color: #1a56db;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 .cart-item-quantity {
   display: flex;
   align-items: center;

@@ -47,21 +47,69 @@ router.get('/', (req, res) => {
   });
 });
 
-// Get single product by ID
+// Get single product by ID with images and variants
 router.get('/:id', (req, res) => {
   const db = getDb();
   const { id } = req.params;
   
-  db.get('SELECT * FROM products WHERE id = ?', [id], (err, row) => {
+  db.get('SELECT * FROM products WHERE id = ?', [id], (err, product) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    if (!row) {
+    if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
     }
-    res.json(row);
+    
+    // Get product images
+    db.all('SELECT * FROM product_images WHERE product_id = ? ORDER BY display_order, id', [id], (err, images) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      
+      // Get product variants (sizes and colors)
+      db.all('SELECT * FROM product_variants WHERE product_id = ? ORDER BY size, color', [id], (err, variants) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        
+        // Combine product with images and variants
+        // Always include the main product image as the first image if it exists
+        let allImages = [];
+        
+        // Add main product image first if it exists and is not already in the images array
+        if (product.image) {
+          const mainImageUrl = product.image;
+          const mainImageExists = images.some(img => img.image_url === mainImageUrl);
+          if (!mainImageExists) {
+            allImages.push({ id: 0, image_url: mainImageUrl, display_order: -1 });
+          }
+        }
+        
+        // Add all additional images from product_images table
+        allImages = [...allImages, ...images];
+        
+        // If no images at all, use empty array
+        if (allImages.length === 0 && !product.image) {
+          allImages = [];
+        }
+        
+        const productData = {
+          ...product,
+          images: allImages.map(img => img.image_url),
+          imageData: allImages, // Include full image data with IDs
+          variants: variants,
+          // Extract unique sizes and colors
+          sizes: [...new Set(variants.filter(v => v.size).map(v => v.size))],
+          colors: [...new Set(variants.filter(v => v.color).map(v => v.color))]
+        };
+        
+        res.json(productData);
+      });
+    });
   });
 });
 

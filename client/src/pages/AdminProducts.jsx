@@ -15,6 +15,7 @@ const AdminProducts = () => {
     name: '',
     description: '',
     price: '',
+    sale_price: '',
     image: '',
     category: '',
     subcategory: '',
@@ -29,6 +30,16 @@ const AdminProducts = () => {
   const [subcategories, setSubcategories] = useState({});
   const location = useLocation();
   const isMountedRef = useRef(true);
+  const [productImages, setProductImages] = useState([]);
+  const [productVariants, setProductVariants] = useState([]);
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [newImageFile, setNewImageFile] = useState(null);
+  const [newImagePreview, setNewImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [newVariant, setNewVariant] = useState({ size: '', color: '', priceAdjustment: 0 });
+  const [showImageSection, setShowImageSection] = useState(false);
+  const [showVariantSection, setShowVariantSection] = useState(false);
+  const [imageInputTypeMultiple, setImageInputTypeMultiple] = useState('url');
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -193,6 +204,7 @@ const AdminProducts = () => {
           name: '',
           description: '',
           price: '',
+          sale_price: '',
           image: '',
           category: '',
           subcategory: '',
@@ -211,12 +223,26 @@ const AdminProducts = () => {
     }
   };
 
-  const handleEdit = (product) => {
+  const fetchProductImages = async (productId) => {
+    try {
+      const response = await fetch(`/api/products/${productId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProductImages(data.imageData || []);
+        setProductVariants(data.variants || []);
+      }
+    } catch (error) {
+      console.error('Error fetching product images/variants:', error);
+    }
+  };
+
+  const handleEdit = async (product) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
       description: product.description || '',
       price: product.price,
+      sale_price: product.sale_price || '',
       image: product.image || '',
       category: product.category || '',
       subcategory: product.subcategory || '',
@@ -227,6 +253,8 @@ const AdminProducts = () => {
     setImageFile(null);
     setImageInputType('url');
     setShowAddForm(true);
+    // Fetch product images and variants
+    await fetchProductImages(product.id);
   };
 
   const handleDelete = async (id) => {
@@ -281,6 +309,7 @@ const AdminProducts = () => {
                     name: '',
                     description: '',
                     price: '',
+                    sale_price: '',
                     image: '',
                     category: '',
                     subcategory: '',
@@ -331,6 +360,22 @@ const AdminProducts = () => {
                       min="0"
                       placeholder="0.00"
                     />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Sale Price ($) <span style={{ fontSize: '0.85rem', color: '#ef4444', fontWeight: '600' }}>SALE</span></label>
+                    <input
+                      type="number"
+                      name="sale_price"
+                      value={formData.sale_price}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      min="0"
+                      placeholder="Leave empty for no sale"
+                    />
+                    <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'rgba(203, 213, 225, 0.7)' }}>
+                      Set a sale price to show discount. Product will display with original price crossed out.
+                    </p>
                   </div>
                 </div>
 
@@ -501,6 +546,8 @@ const AdminProducts = () => {
                     onClick={() => {
                       setShowAddForm(false);
                       setEditingProduct(null);
+                      setProductImages([]);
+                      setProductVariants([]);
                     }}
                     className="btn btn-secondary"
                   >
@@ -508,6 +555,266 @@ const AdminProducts = () => {
                   </button>
                 </div>
               </form>
+
+              {/* Product Images and Variants Management - Only show when editing */}
+              {editingProduct && (
+                <div className="product-management-sections">
+                  {/* Multiple Images Section */}
+                  <div className="management-section">
+                    <div className="section-header" onClick={() => setShowImageSection(!showImageSection)}>
+                      <h3>📷 Product Images ({productImages.length})</h3>
+                      <span>{showImageSection ? '▼' : '▶'}</span>
+                    </div>
+                    {showImageSection && (
+                      <div className="section-content">
+                        <div className="images-list">
+                          {productImages.map((img) => (
+                            <div key={img.id} className="image-item">
+                              <img src={img.image_url} alt={`Product image ${img.id}`} />
+                              {img.id !== 0 && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (!window.confirm('Are you sure you want to delete this image?')) return;
+                                    try {
+                                      const deleteResponse = await fetch(`/api/admin/products/${editingProduct.id}/images/${img.id}`, {
+                                        method: 'DELETE'
+                                      });
+                                      if (deleteResponse.ok) {
+                                        await fetchProductImages(editingProduct.id);
+                                      } else {
+                                        alert('Error deleting image');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error deleting image:', error);
+                                      alert('Error deleting image');
+                                    }
+                                  }}
+                                  className="btn-remove-image"
+                                >
+                                  ×
+                                </button>
+                              )}
+                              {img.id === 0 && (
+                                <span className="main-image-badge">Main</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="add-image-form">
+                          <div className="image-input-toggle" style={{ marginBottom: '1rem' }}>
+                            <button
+                              type="button"
+                              className={`toggle-btn ${imageInputTypeMultiple === 'url' ? 'active' : ''}`}
+                              onClick={() => {
+                                setImageInputTypeMultiple('url');
+                                setNewImageFile(null);
+                                setNewImagePreview('');
+                              }}
+                            >
+                              Use URL
+                            </button>
+                            <button
+                              type="button"
+                              className={`toggle-btn ${imageInputTypeMultiple === 'upload' ? 'active' : ''}`}
+                              onClick={() => {
+                                setImageInputTypeMultiple('upload');
+                                setNewImageUrl('');
+                              }}
+                            >
+                              Upload from Device
+                            </button>
+                          </div>
+
+                          {imageInputTypeMultiple === 'url' ? (
+                            <>
+                              <input
+                                type="text"
+                                value={newImageUrl}
+                                onChange={(e) => setNewImageUrl(e.target.value)}
+                                placeholder="Enter image URL"
+                                className="image-url-input"
+                              />
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (!newImageUrl.trim()) return;
+                                  try {
+                                    const response = await fetch(`/api/admin/products/${editingProduct.id}/images`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ imageUrl: newImageUrl })
+                                    });
+                                    if (response.ok) {
+                                      setNewImageUrl('');
+                                      await fetchProductImages(editingProduct.id);
+                                    }
+                                  } catch (error) {
+                                    alert('Error adding image');
+                                  }
+                                }}
+                                className="btn btn-primary"
+                              >
+                                Add Image
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files[0];
+                                  if (file) {
+                                    setNewImageFile(file);
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      setNewImagePreview(reader.result);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                                className="file-input"
+                                style={{ marginBottom: '0.75rem' }}
+                              />
+                              {newImagePreview && (
+                                <div className="image-preview-container" style={{ marginBottom: '0.75rem' }}>
+                                  <img src={newImagePreview} alt="Preview" className="image-preview" />
+                                </div>
+                              )}
+                              {newImageFile && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    setUploadingImage(true);
+                                    try {
+                                      const formDataToSend = new FormData();
+                                      formDataToSend.append('image', newImageFile);
+
+                                      const uploadResponse = await fetch('/api/admin/upload-image', {
+                                        method: 'POST',
+                                        body: formDataToSend
+                                      });
+
+                                      if (uploadResponse.ok) {
+                                        const uploadData = await uploadResponse.json();
+                                        const imageUrl = `/images/products/${uploadData.filename}`;
+                                        
+                                        const addResponse = await fetch(`/api/admin/products/${editingProduct.id}/images`, {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ imageUrl })
+                                        });
+                                        
+                                        if (addResponse.ok) {
+                                          setNewImageFile(null);
+                                          setNewImagePreview('');
+                                          await fetchProductImages(editingProduct.id);
+                                        }
+                                      }
+                                    } catch (error) {
+                                      alert('Error uploading image');
+                                    } finally {
+                                      setUploadingImage(false);
+                                    }
+                                  }}
+                                  disabled={uploadingImage}
+                                  className="btn btn-primary"
+                                >
+                                  {uploadingImage ? 'Uploading...' : 'Upload & Add Image'}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sizes and Colors Section */}
+                  <div className="management-section">
+                    <div className="section-header" onClick={() => setShowVariantSection(!showVariantSection)}>
+                      <h3>🎨 Sizes & Colors ({productVariants.length})</h3>
+                      <span>{showVariantSection ? '▼' : '▶'}</span>
+                    </div>
+                    {showVariantSection && (
+                      <div className="section-content">
+                        <div className="variants-list">
+                          {productVariants.map((variant) => (
+                            <div key={variant.id} className="variant-item">
+                              <div>
+                                {variant.size && <span className="variant-tag">Size: {variant.size}</span>}
+                                {variant.color && <span className="variant-tag">Color: {variant.color}</span>}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const response = await fetch(`/api/admin/products/${editingProduct.id}/variants/${variant.id}`, {
+                                      method: 'DELETE'
+                                    });
+                                    if (response.ok) {
+                                      await fetchProductImages(editingProduct.id);
+                                    }
+                                  } catch (error) {
+                                    alert('Error deleting variant');
+                                  }
+                                }}
+                                className="btn-remove-variant"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="add-variant-form">
+                          <div className="variant-inputs">
+                            <input
+                              type="text"
+                              value={newVariant.size}
+                              onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
+                              placeholder="Size (e.g., S, M, L)"
+                              className="variant-input"
+                            />
+                            <input
+                              type="text"
+                              value={newVariant.color}
+                              onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                              placeholder="Color (e.g., Red, Blue)"
+                              className="variant-input"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!newVariant.size && !newVariant.color) {
+                                alert('Please enter at least a size or color');
+                                return;
+                              }
+                              try {
+                                const response = await fetch(`/api/admin/products/${editingProduct.id}/variants`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify(newVariant)
+                                });
+                                if (response.ok) {
+                                  setNewVariant({ size: '', color: '', priceAdjustment: 0 });
+                                  await fetchProductImages(editingProduct.id);
+                                }
+                              } catch (error) {
+                                alert('Error adding variant');
+                              }
+                            }}
+                            className="btn btn-primary"
+                          >
+                            Add Variant
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -573,7 +880,17 @@ const AdminProducts = () => {
                             )}
                           </div>
                         </td>
-                        <td>${product.price.toFixed(2)}</td>
+                        <td>
+                          {product.sale_price && product.sale_price < product.price ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <span style={{ color: '#ef4444', fontWeight: '700' }}>${product.sale_price.toFixed(2)}</span>
+                              <span style={{ color: '#9ca3af', textDecoration: 'line-through', fontSize: '0.85rem' }}>${product.price.toFixed(2)}</span>
+                              <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>SALE</span>
+                            </div>
+                          ) : (
+                            `$${product.price.toFixed(2)}`
+                          )}
+                        </td>
                         <td>
                           <span className={product.stock < 10 ? 'low-stock' : ''}>
                             {product.stock}
