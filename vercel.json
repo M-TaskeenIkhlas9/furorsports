@@ -3,11 +3,9 @@
     {
       "source": "/api/:path*",
       "destination": "https://YOUR-RAILWAY-URL.up.railway.app/api/:path*"
-    },
-    {
-      "source": "/((?!api).*)",
-      "destination": "/index.html"
     }
-  ]
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
 
