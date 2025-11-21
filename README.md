@@ -6,6 +6,7 @@ A full-stack ecommerce website for Furor Sport, featuring professional sports we
 
 ### Customer Features
 - **Product Catalog**: Browse products by category (Sports Uniforms, Fitness Wears, Street Wears, Martial Arts/Karate Uniforms)
+- **Clickable Product Cards**: Entire product cards are clickable for quick navigation to product details
 - **Product Variants**: Select sizes and colors for products
 - **Multiple Product Images**: Image carousel with navigation for product details
 - **Sale Prices**: Special pricing with visual sale badges
@@ -21,7 +22,11 @@ A full-stack ecommerce website for Furor Sport, featuring professional sports we
 - **Admin Dashboard**: Comprehensive overview with statistics and recent orders
 - **Product Management**: Full CRUD operations for products with multiple images
 - **Order Management**: View, update status, and manage all customer orders
-- **Customer Management**: View customer details and order history
+- **Customer Management**: 
+  - View customer details and order history
+  - Sticky header with customer information
+  - In-modal order details view (no navigation away from customer page)
+  - Complete order information with items, images, and variants
 - **Revenue Analytics**: Track revenue with period and month/year filters
 - **Shipping Labels**: Export order details with product images for shipping
 - **CSV Export**: Export orders data for external analysis

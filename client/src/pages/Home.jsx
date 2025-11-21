@@ -453,7 +453,11 @@ const Home = () => {
               </button>
               <div className="products-grid">
                 {products.slice(productIndex, productIndex + 3).map(product => (
-                  <div key={product.id} className="product-card">
+                  <Link 
+                    key={product.id} 
+                    to={`/product/${product.id}`}
+                    className="product-card product-card-link"
+                  >
                     <div className="product-image">
                       {product.sale_price && product.sale_price < product.price && (
                         <div className="product-sale-badge-overlay">SALE</div>
@@ -479,11 +483,11 @@ const Home = () => {
                           <span className="product-price">{product.price.toFixed(2)}</span>
                         )}
                       </div>
-                      <Link to={`/product/${product.id}`} className="btn btn-outline">
+                      <span className="btn btn-outline">
                         Show Details
-                      </Link>
+                      </span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
               <button 
