@@ -3,12 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://YOUR-RAILWAY-URL.up.railway.app/api/:path*"
-    }
-  ],
-  "routes": [
+    },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
     }
   ]
 }
