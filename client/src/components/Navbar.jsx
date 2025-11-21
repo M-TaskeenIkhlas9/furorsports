@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
+import { API_URL } from '../config/api'
 import './Navbar.css'
 
 const Navbar = () => {
@@ -54,10 +55,20 @@ const Navbar = () => {
         const response = await fetch('/api/categories')
         if (response.ok) {
           const data = await response.json()
-          setCategories(data)
+          console.log('Categories fetched:', data) // Debug log
+          if (Array.isArray(data) && data.length > 0) {
+            setCategories(data)
+          } else {
+            console.warn('Categories array is empty or invalid:', data)
+            setCategories([])
+          }
+        } else {
+          console.error('Failed to fetch categories:', response.status, response.statusText)
+          setCategories([])
         }
       } catch (error) {
         console.error('Error fetching categories:', error)
+        setCategories([])
       }
     }
     fetchCategories()
@@ -121,44 +132,57 @@ const Navbar = () => {
                 Products
               </Link>
               
-              <div className={`products-dropdown ${productsDropdownOpen ? 'open' : ''}`}>
-                {categories.map((category, index) => (
-                  <div key={category.id || index}>
-                    {index > 0 && <div className="dropdown-divider"></div>}
-                    <div 
-                      className="dropdown-column"
-                      onMouseEnter={() => {
-                        // Only set hovered if category has subcategories
-                        if (category.subcategories && category.subcategories.length > 0) {
-                          setHoveredCategory(category.name);
-                        }
-                      }}
-                      onMouseLeave={() => setHoveredCategory(null)}
-                    >
-                      <Link 
-                        to={`/products?category=${encodeURIComponent(category.name)}`} 
-                        className="dropdown-category"
-                      >
-                        {category.name}
-                      </Link>
-                      {hoveredCategory === category.name && category.subcategories && category.subcategories.length > 0 && (
-                        <div className="subcategories-container">
-                          {category.subcategories.map(sub => (
-                            <Link 
-                              key={sub.id} 
-                              to={`/products?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(sub.name)}`} 
-                              className="dropdown-subcategory"
-                            >
-                              <span className="chevron-bullet">▶</span>
-                              {sub.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
+              {(productsDropdownOpen || categories.length > 0) && (
+                <div className={`products-dropdown ${productsDropdownOpen ? 'open' : ''}`}>
+                  {categories.length === 0 ? (
+                    <div style={{ padding: '1rem', color: '#ffffff', textAlign: 'center', gridColumn: '1 / -1' }}>
+                      <p>Loading categories...</p>
+                      <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.8 }}>
+                        If categories don't appear, add them in Admin Panel → Categories
+                      </p>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ) : (
+                    categories.map((category, index) => (
+                      <div key={category.id || category.category_id || index}>
+                        {index > 0 && <div className="dropdown-divider"></div>}
+                        <div 
+                          className="dropdown-column"
+                          onMouseEnter={() => {
+                            // Only set hovered if category has subcategories
+                            if (category.subcategories && category.subcategories.length > 0) {
+                              setHoveredCategory(category.name);
+                            }
+                          }}
+                          onMouseLeave={() => setHoveredCategory(null)}
+                        >
+                          <Link 
+                            to={`/products?category=${encodeURIComponent(category.name)}`} 
+                            className="dropdown-category"
+                            onClick={() => setProductsDropdownOpen(false)}
+                          >
+                            {category.name}
+                          </Link>
+                          {hoveredCategory === category.name && category.subcategories && category.subcategories.length > 0 && (
+                            <div className="subcategories-container">
+                              {category.subcategories.map(sub => (
+                                <Link 
+                                  key={sub.id || sub.subcategory_id} 
+                                  to={`/products?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(sub.name)}`} 
+                                  className="dropdown-subcategory"
+                                  onClick={() => setProductsDropdownOpen(false)}
+                                >
+                                  <span className="chevron-bullet">▶</span>
+                                  {sub.name}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="nav-separator"></div>
