@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
+import { generateWhatsAppUrl } from '../config/api'
 import './Checkout.css'
 
 const Checkout = () => {
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [orderProcessing, setOrderProcessing] = useState(false) // Prevent duplicate submissions
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -52,11 +54,80 @@ const Checkout = () => {
     })
   }
 
+  const formatWhatsAppMessage = (orderData) => {
+    const { order } = orderData
+    const items = order.items || []
+    
+    // Get base URL for images
+    const getImageUrl = (imagePath) => {
+      if (!imagePath) return null
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath
+      }
+      // For relative paths, use current origin
+      return window.location.origin + imagePath
+    }
+    
+    let message = `🛍️ *NEW ORDER REQUEST*\n\n`
+    message += `*Order Number:* ${order.order_number}\n\n`
+    message += `*Customer Details:*\n`
+    message += `Name: ${order.customer_name}\n`
+    message += `Email: ${order.email}\n`
+    if (order.phone) {
+      message += `Phone: ${order.phone}\n`
+    }
+    message += `\n*Shipping Address:*\n`
+    message += `${order.address}\n`
+    message += `${order.city}, ${order.country}\n\n`
+    message += `*Order Items:*\n\n`
+    
+    items.forEach((item, index) => {
+      message += `${index + 1}. *${item.name}*\n`
+      message += `   Qty: ${item.quantity} × $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}\n`
+      if (item.size) {
+        message += `   Size: ${item.size}\n`
+      }
+      if (item.color) {
+        message += `   Color: ${item.color}\n`
+      }
+      // Add product image URL if available
+      if (item.image) {
+        const imageUrl = getImageUrl(item.image)
+        if (imageUrl) {
+          message += `   📷 Image: ${imageUrl}\n`
+        }
+      }
+      message += `\n`
+    })
+    
+    message += `*Total Amount: $${order.total_amount.toFixed(2)}*\n\n`
+    message += `Please confirm this order and provide payment instructions.`
+    
+    return message
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Prevent duplicate submissions
+    if (submitting || orderProcessing) {
+      console.log('Order already being processed, ignoring duplicate submission')
+      return
+    }
+    
     setSubmitting(true)
+    setOrderProcessing(true)
 
     const sessionId = localStorage.getItem('sessionId')
+    
+    // Validate cart is not empty
+    if (!cartItems || cartItems.length === 0) {
+      alert('Your cart is empty. Please add items before checkout.')
+      setSubmitting(false)
+      setOrderProcessing(false)
+      return
+    }
+    
     const items = cartItems.map(item => ({
       product_id: item.product_id,
       name: item.name,
@@ -68,8 +139,8 @@ const Checkout = () => {
     }))
 
     try {
-      // Create Stripe Checkout Session
-      const response = await fetch('/api/payment/create-checkout-session', {
+      // Create WhatsApp order (pending status)
+      const response = await fetch('/api/orders/create-whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,16 +152,75 @@ const Checkout = () => {
 
       if (response.ok) {
         const result = await response.json()
-        // Redirect to Stripe Checkout
-        window.location.href = result.url
+        
+        // Validate response structure
+        if (!result.orderNumber || !result.order) {
+          console.error('Invalid response structure:', result)
+          alert('Error: Invalid order response. Please try again.')
+          setSubmitting(false)
+          setOrderProcessing(false)
+          return
+        }
+        
+        // Clear cart immediately to prevent duplicate orders
+        try {
+          await fetch(`/api/cart/${sessionId}`, { method: 'DELETE' }).catch(() => {})
+          localStorage.removeItem('sessionId')
+        } catch (cartError) {
+          console.error('Error clearing cart:', cartError)
+        }
+        
+        // Generate WhatsApp message
+        try {
+          const whatsappMessage = formatWhatsAppMessage(result)
+          const whatsappUrl = generateWhatsAppUrl(whatsappMessage)
+          
+          // Store order info for success page
+          localStorage.setItem('pendingOrder', JSON.stringify({
+            orderNumber: result.orderNumber,
+            orderId: result.orderId
+          }))
+          
+          // Mark order as completed to prevent navigation issues
+          setOrderProcessing(false)
+          
+          // Open WhatsApp in new tab
+          window.open(whatsappUrl, '_blank')
+          
+          // Navigate to success page
+          navigate(`/checkout/success?order=${result.orderNumber}`)
+        } catch (formatError) {
+          console.error('Error formatting WhatsApp message:', formatError)
+          // Still navigate to success page even if WhatsApp formatting fails
+          localStorage.setItem('pendingOrder', JSON.stringify({
+            orderNumber: result.orderNumber,
+            orderId: result.orderId
+          }))
+          setOrderProcessing(false)
+          navigate(`/checkout/success?order=${result.orderNumber}`)
+        }
       } else {
-        const error = await response.json()
-        alert(error.error || 'Error creating payment session. Please try again.')
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch (parseError) {
+          errorData = { error: `Server error (${response.status}): ${response.statusText}` }
+        }
+        console.error('Order creation error:', errorData)
+        alert(errorData.error || 'Error creating order. Please try again.')
         setSubmitting(false)
+        setOrderProcessing(false)
       }
     } catch (error) {
-      alert('Error processing payment. Please try again.')
+      console.error('Error creating order:', error)
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
+      alert(`Error processing order: ${error.message || 'Please try again.'}`)
       setSubmitting(false)
+      setOrderProcessing(false)
     }
   }
 
@@ -185,10 +315,15 @@ const Checkout = () => {
               <button 
                 type="submit" 
                 className="btn btn-primary btn-large"
-                disabled={submitting}
+                disabled={submitting || orderProcessing}
               >
-                {submitting ? 'Processing...' : 'Pay with Stripe'}
+                {submitting || orderProcessing ? 'Creating Order...' : '📱 Order via WhatsApp'}
               </button>
+              
+              <div className="checkout-info-box">
+                <p>💡 <strong>How it works:</strong></p>
+                <p>After submitting, your order will be created and a WhatsApp message will open. Send the message to complete your order. We'll confirm and provide payment instructions via WhatsApp.</p>
+              </div>
             </form>
           </div>
 

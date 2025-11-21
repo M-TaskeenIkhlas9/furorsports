@@ -136,6 +136,19 @@ const Contact = () => {
               </p>
             </div>
             <div className="info-item">
+              <h3>Instagram</h3>
+              <p>
+                <a 
+                  href="https://www.instagram.com/furorsport_?igsh=cW9qYWJwNDloMTAy" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
+                  @furorsport_
+                </a>
+              </p>
+            </div>
+            <div className="info-item">
               <h3>Address</h3>
               <p>
                 Latif Villas, Near Masjid Nawab Bibi,<br />

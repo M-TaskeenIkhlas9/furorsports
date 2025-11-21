@@ -140,6 +140,29 @@
   margin-top: 1rem;
 }
 
+.checkout-info-box {
+  background: #f0f9ff;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  color: #1e40af;
+}
+
+.checkout-info-box p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.checkout-info-box p:first-child {
+  margin-top: 0;
+}
+
+.checkout-info-box p:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 968px) {
   .checkout-content {
     grid-template-columns: 1fr;

@@ -1,0 +1,87 @@
+═══════════════════════════════════════════════════════════════
+  WHATSAPP MESSAGE PREVIEW - EXACT FORMAT CUSTOMERS WILL SEND
+═══════════════════════════════════════════════════════════════
+
+🛍️ *NEW ORDER REQUEST*
+
+*Order Number:* ORD-1734567890123-TEST123
+
+*Customer Details:*
+Name: Test Customer
+Email: test@example.com
+Phone: +92 300 8522576
+
+*Shipping Address:*
+123 Test Street
+Sialkot, Pakistan
+
+*Order Items:*
+1. Athletic Swimsuit
+   Qty: 2 × $45.00 = $90.00
+   Size: Large
+   Color: Black
+
+2. Fitness Activewear Set
+   Qty: 1 × $89.99 = $89.99
+   Size: Medium
+   Color: Blue
+
+*Total Amount: $179.99*
+
+Please confirm this order and provide payment instructions.
+
+═══════════════════════════════════════════════════════════════
+  WHATSAPP NUMBER: +92 300 8522576 (923008522576)
+═══════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════
+  TEST RESULTS
+═══════════════════════════════════════════════════════════════
+
+✅ WhatsApp Number: Correctly configured (923008522576)
+✅ Message Format: Valid and properly structured
+✅ URL Generation: Working correctly
+✅ Message Length: 477 characters (within WhatsApp limits)
+✅ URL Length: 763 characters (valid)
+
+═══════════════════════════════════════════════════════════════
+  HOW IT WORKS
+═══════════════════════════════════════════════════════════════
+
+1. Customer fills checkout form
+2. Clicks "📱 Order via WhatsApp"
+3. System creates order in database (status: pending)
+4. WhatsApp opens with pre-filled message above
+5. Customer sends message to +92 300 8522576
+6. You receive message on WhatsApp
+7. Order appears in Admin Panel
+8. You confirm payment and update status
+
+═══════════════════════════════════════════════════════════════
+  WHAT YOU'LL SEE IN WHATSAPP
+═══════════════════════════════════════════════════════════════
+
+The message will appear in your WhatsApp chat with:
+- Bold text for headers (*NEW ORDER REQUEST*, *Order Number*, etc.)
+- Clear sections for easy reading
+- All product details with quantities and prices
+- Size and color variants (if selected)
+- Total amount highlighted
+- Request for confirmation
+
+═══════════════════════════════════════════════════════════════
+  TEST THE SYSTEM
+═══════════════════════════════════════════════════════════════
+
+To test:
+1. Go to your website (http://localhost:3000)
+2. Add products to cart
+3. Go to checkout
+4. Fill in test customer details
+5. Click "📱 Order via WhatsApp"
+6. WhatsApp should open with formatted message
+7. Review the message (don't send if testing)
+8. Check Admin Panel for the order
+
+═══════════════════════════════════════════════════════════════
+

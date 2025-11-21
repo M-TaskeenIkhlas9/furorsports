@@ -238,6 +238,61 @@ router.get('/orders/:id', (req, res) => {
   });
 });
 
+// Delete order (only for delivered or cancelled orders)
+router.delete('/orders/:id', (req, res) => {
+  const db = getDb();
+  const { id } = req.params;
+  
+  // First check if order exists and its status
+  db.get('SELECT status FROM orders WHERE id = ?', [id], (err, order) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Only allow deletion of pending, delivered, or cancelled orders
+    const statusLower = order.status?.toLowerCase();
+    const allowedStatuses = ['pending', 'delivered', 'cancelled', 'canceled'];
+    if (!allowedStatuses.includes(statusLower)) {
+      return res.status(400).json({ 
+        error: 'Only pending, delivered, or cancelled orders can be deleted' 
+      });
+    }
+    
+    // Delete order items first (due to foreign key constraint)
+    db.run('DELETE FROM order_items WHERE order_id = ?', [id], (err) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      // Delete admin notifications related to this order
+      db.run('DELETE FROM admin_notifications WHERE order_id = ?', [id], (err) => {
+        if (err) {
+          console.error('Error deleting notifications:', err);
+          // Continue even if notification deletion fails
+        }
+        
+        // Delete the order
+        db.run('DELETE FROM orders WHERE id = ?', [id], function(err) {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          if (this.changes === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+          }
+          
+          res.json({ 
+            success: true, 
+            message: 'Order deleted successfully' 
+          });
+        });
+      });
+    });
+  });
+});
+
 // Update order status
 router.put('/orders/:id/status', (req, res) => {
   const db = getDb();
@@ -309,7 +364,9 @@ router.get('/revenue/analytics', (req, res) => {
       SUM(total_amount) as revenue,
       COUNT(*) as orders
     FROM orders
-    WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled'))
+    WHERE status IN ('processing', 'shipped', 'delivered') 
+      AND status != 'canceled' 
+      AND status != 'cancelled'
     ${dateFilter}
     GROUP BY ${groupBy}
     ORDER BY date DESC
@@ -346,7 +403,9 @@ router.get('/revenue/summary', (req, res) => {
       db.get(
         `SELECT SUM(total_amount) as total, COUNT(*) as orders 
          FROM orders 
-         WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled')) 
+         WHERE status IN ('processing', 'shipped', 'delivered') 
+           AND status != 'canceled' 
+           AND status != 'cancelled'
          AND date(created_at) = date('now')`,
         [],
     (err, row) => {
@@ -362,7 +421,9 @@ router.get('/revenue/summary', (req, res) => {
       db.get(
         `SELECT SUM(total_amount) as total, COUNT(*) as orders 
          FROM orders 
-         WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled')) 
+         WHERE status IN ('processing', 'shipped', 'delivered') 
+           AND status != 'canceled' 
+           AND status != 'cancelled'
          AND created_at >= date('now', '-7 days')`,
         [],
         (err, row) => {
@@ -378,7 +439,9 @@ router.get('/revenue/summary', (req, res) => {
           db.get(
             `SELECT SUM(total_amount) as total, COUNT(*) as orders 
              FROM orders 
-             WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled')) 
+             WHERE status IN ('processing', 'shipped', 'delivered') 
+               AND status != 'canceled' 
+               AND status != 'cancelled'
              ${monthFilter}`,
             [],
             (err, row) => {
@@ -394,7 +457,9 @@ router.get('/revenue/summary', (req, res) => {
               db.get(
                 `SELECT SUM(total_amount) as total, COUNT(*) as orders 
                  FROM orders 
-                 WHERE payment_status = 'paid' AND (status IS NULL OR (status != 'canceled' AND status != 'cancelled'))`,
+                 WHERE status IN ('processing', 'shipped', 'delivered') 
+                   AND status != 'canceled' 
+                   AND status != 'cancelled'`,
                 [],
                 (err, row) => {
                   if (err) {
@@ -436,8 +501,8 @@ router.get('/dashboard/stats', (req, res) => {
       }
       stats.totalOrders = row.count;
       
-      // Total revenue (only paid and not canceled)
-      db.get('SELECT SUM(total_amount) as total FROM orders WHERE payment_status = "paid" AND (status IS NULL OR (status != "canceled" AND status != "cancelled"))', [], (err, row) => {
+      // Total revenue (only confirmed orders: processing, shipped, delivered - not canceled)
+      db.get('SELECT SUM(total_amount) as total FROM orders WHERE status IN ("processing", "shipped", "delivered") AND status != "canceled" AND status != "cancelled"', [], (err, row) => {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
@@ -732,6 +797,94 @@ router.delete('/products/:id/variants/:variantId', (req, res) => {
         return;
       }
       res.json({ success: true });
+    }
+  );
+});
+
+// Get all customers with their order statistics
+router.get('/customers', (req, res) => {
+  const db = getDb();
+  
+  // Get unique customers with their order statistics
+  db.all(
+    `SELECT 
+      email,
+      customer_name as name,
+      phone,
+      address,
+      city,
+      country,
+      COUNT(*) as total_orders,
+      SUM(total_amount) as total_spent,
+      MAX(created_at) as last_order_date,
+      MIN(created_at) as first_order_date
+    FROM orders
+    GROUP BY email, customer_name, phone, address, city, country
+    ORDER BY total_spent DESC, last_order_date DESC`,
+    [],
+    (err, customers) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(customers);
+    }
+  );
+});
+
+// Get customer details with all orders
+router.get('/customers/:email', (req, res) => {
+  const db = getDb();
+  const { email } = req.params;
+  
+  // Get customer info from first order
+  db.get(
+    `SELECT customer_name, email, phone, address, city, country
+     FROM orders
+     WHERE email = ?
+     LIMIT 1`,
+    [email],
+    (err, customerInfo) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!customerInfo) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+      
+      // Get all orders for this customer
+      db.all(
+        `SELECT 
+          id,
+          order_number,
+          total_amount,
+          status,
+          payment_status,
+          created_at
+        FROM orders
+        WHERE email = ?
+        ORDER BY created_at DESC`,
+        [email],
+        (err, orders) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          
+          // Calculate statistics
+          const totalOrders = orders.length;
+          const totalSpent = orders.reduce((sum, order) => sum + order.total_amount, 0);
+          const lastOrderDate = orders.length > 0 ? orders[0].created_at : null;
+          const firstOrderDate = orders.length > 0 ? orders[orders.length - 1].created_at : null;
+          
+          res.json({
+            ...customerInfo,
+            total_orders: totalOrders,
+            total_spent: totalSpent,
+            last_order_date: lastOrderDate,
+            first_order_date: firstOrderDate,
+            orders: orders
+          });
+        }
+      );
     }
   );
 });

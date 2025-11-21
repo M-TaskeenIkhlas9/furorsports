@@ -5,6 +5,7 @@ import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
+  const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -30,6 +31,7 @@ const AdminDashboard = () => {
     }
 
     fetchStats();
+    fetchRecentOrders();
     fetchNotifications();
     fetchUnreadCount();
     
@@ -66,6 +68,17 @@ const AdminDashboard = () => {
       console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecentOrders = async () => {
+    try {
+      const response = await fetch('/api/admin/orders');
+      const data = await response.json();
+      // Get last 10 orders
+      setRecentOrders(data.slice(0, 10));
+    } catch (error) {
+      console.error('Error fetching recent orders:', error);
     }
   };
 
@@ -326,6 +339,71 @@ const AdminDashboard = () => {
             </div>
           </div>
 
+          <div className="recent-orders-section">
+            <div className="section-header">
+              <h2>Recent Orders</h2>
+              <button 
+                onClick={() => navigate('/admin/orders')} 
+                className="btn btn-outline"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                View All Orders →
+              </button>
+            </div>
+            
+            {recentOrders.length === 0 ? (
+              <div className="no-orders-message">
+                <p>No orders yet</p>
+              </div>
+            ) : (
+              <div className="recent-orders-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentOrders.map(order => (
+                      <tr key={order.id}>
+                        <td className="order-number-cell">{order.order_number}</td>
+                        <td>{order.customer_name}</td>
+                        <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                        <td className="amount-cell">${order.total_amount?.toFixed(2) || '0.00'}</td>
+                        <td>
+                          <span 
+                            className="status-badge-small"
+                            style={{ 
+                              backgroundColor: order.status === 'delivered' ? '#10b981' :
+                                              order.status === 'processing' ? '#3b82f6' :
+                                              order.status === 'shipped' ? '#8b5cf6' :
+                                              order.status === 'cancelled' ? '#ef4444' : '#f59e0b'
+                            }}
+                          >
+                            {order.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button 
+                            onClick={() => navigate(`/admin/orders?order=${order.order_number}`)}
+                            className="btn-view-small"
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           <div className="admin-actions">
             <h2>Quick Actions</h2>
             <div className="action-buttons">
@@ -352,6 +430,12 @@ const AdminDashboard = () => {
                 className="btn btn-primary"
               >
                 Manage Categories
+              </button>
+              <button 
+                onClick={() => navigate('/admin/customers')} 
+                className="btn btn-primary"
+              >
+                View Customers
               </button>
               <button 
                 onClick={() => setShowPasswordChange(!showPasswordChange)} 

@@ -54,6 +54,43 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.social-links {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.social-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.social-link.instagram:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: #ffffff;
+}
+
+.social-link svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .footer-bottom {
   display: flex;
   justify-content: center;
@@ -69,11 +106,44 @@
   text-align: center;
 }
 
-/* Floating WhatsApp Button */
-.whatsapp-float {
+/* Floating Social Buttons Container */
+.floating-social-buttons {
   position: fixed;
   bottom: 30px;
   right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 1000;
+}
+
+/* Floating Instagram Button */
+.instagram-float {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(220, 39, 67, 0.4);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.instagram-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(220, 39, 67, 0.6);
+}
+
+.instagram-float svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Floating WhatsApp Button */
+.whatsapp-float {
   width: 60px;
   height: 60px;
   background: #25D366;
@@ -83,7 +153,6 @@
   justify-content: center;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
-  z-index: 1000;
   transition: all 0.3s ease;
   text-decoration: none;
 }
@@ -121,14 +190,39 @@
     gap: 1rem;
     text-align: center;
   }
-
-  .whatsapp-float {
-    width: 55px;
-    height: 55px;
+  
+  .floating-social-buttons {
     bottom: 20px;
     right: 20px;
+    gap: 12px;
   }
+  
+  .instagram-float,
+  .whatsapp-float {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .instagram-float svg,
+  .whatsapp-float svg {
+    width: 24px;
+    height: 24px;
+  }
+}
 
+  .floating-social-buttons {
+    bottom: 20px;
+    right: 20px;
+    gap: 12px;
+  }
+  
+  .instagram-float,
+  .whatsapp-float {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .instagram-float svg,
   .whatsapp-float svg {
     width: 24px;
     height: 24px;

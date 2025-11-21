@@ -16,6 +16,7 @@ import AdminProducts from './pages/AdminProducts'
 import AdminOrders from './pages/AdminOrders'
 import AdminCategories from './pages/AdminCategories'
 import AdminRevenue from './pages/AdminRevenue'
+import AdminCustomers from './pages/AdminCustomers'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -70,6 +71,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminRevenue />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/customers" 
+          element={
+            <ProtectedRoute>
+              <AdminCustomers />
             </ProtectedRoute>
           } 
         />

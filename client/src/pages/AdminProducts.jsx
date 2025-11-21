@@ -7,6 +7,8 @@ const AdminProducts = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const navigate = useNavigate();
@@ -111,19 +113,36 @@ const AdminProducts = () => {
     };
   }, [location.pathname, fetchProducts, fetchCategories, navigate]);
 
-  // Filter products based on URL parameters
+  // Filter products based on URL parameters, search, and category
   useEffect(() => {
-    const filter = searchParams.get('filter');
+    let filtered = [...products];
     
+    // Apply low-stock filter from URL
+    const filter = searchParams.get('filter');
     if (filter === 'low-stock') {
-      // Show only products with stock < 10
-      const filtered = products.filter(product => (product.stock || 0) < 10);
-      setFilteredProducts(filtered);
-    } else {
-      // Show all products
-      setFilteredProducts(products);
+      filtered = filtered.filter(product => (product.stock || 0) < 10);
     }
-  }, [products, searchParams]);
+    
+    // Apply search filter
+    if (searchTerm.trim() !== '') {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(product => {
+        return (
+          product.name?.toLowerCase().includes(search) ||
+          product.description?.toLowerCase().includes(search) ||
+          product.category?.toLowerCase().includes(search) ||
+          product.subcategory?.toLowerCase().includes(search)
+        );
+      });
+    }
+    
+    // Apply category filter
+    if (categoryFilter !== '') {
+      filtered = filtered.filter(product => product.category === categoryFilter);
+    }
+    
+    setFilteredProducts(filtered);
+  }, [products, searchParams, searchTerm, categoryFilter]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -819,7 +838,7 @@ const AdminProducts = () => {
           )}
 
           <div className="products-table-container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className="products-header">
               <h2>
                 {searchParams.get('filter') === 'low-stock'
                   ? `Low Stock Items (${filteredProducts.length})`
@@ -833,6 +852,46 @@ const AdminProducts = () => {
                   style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
                 >
                   Show All Products
+                </button>
+              )}
+            </div>
+            
+            <div className="filters-section">
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Search products by name, description, category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                <span className="search-icon">🔍</span>
+              </div>
+              
+              <div className="category-filter">
+                <label>Filter by Category:</label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="category-select"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {(searchTerm || categoryFilter) && (
+                <button 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setCategoryFilter('');
+                  }}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                >
+                  Clear Filters
                 </button>
               )}
             </div>

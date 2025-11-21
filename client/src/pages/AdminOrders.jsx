@@ -19,11 +19,11 @@ const AdminOrders = () => {
   }, [navigate]);
 
   useEffect(() => {
+    // Show ALL orders by default, only filter if URL has specific filter
     const statusFilter = searchParams.get('status');
     const customFilter = searchParams.get('filter');
     
     if (customFilter === 'non-delivered') {
-      // Show orders that are NOT delivered (processing and shipped), excluding cancelled
       const filtered = orders.filter(order => {
         const status = order.status?.toLowerCase();
         return (status === 'processing' || status === 'shipped') 
@@ -32,12 +32,12 @@ const AdminOrders = () => {
       });
       setFilteredOrders(filtered);
     } else if (statusFilter) {
-      // Filter by exact status match
       const filtered = orders.filter(order => 
         order.status?.toLowerCase() === statusFilter.toLowerCase()
       );
       setFilteredOrders(filtered);
     } else {
+      // No filter - show ALL orders
       setFilteredOrders(orders);
     }
   }, [orders, searchParams]);
@@ -47,6 +47,7 @@ const AdminOrders = () => {
       const response = await fetch('/api/admin/orders');
       const data = await response.json();
       setOrders(data);
+      // Show all orders by default - filtering will be handled in useEffect
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -88,6 +89,87 @@ const AdminOrders = () => {
     } catch (error) {
       alert('Error: ' + error.message);
     }
+  };
+
+  const deleteOrder = async (id, orderNumber) => {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete order ${orderNumber}?\n\n` +
+      `This action cannot be undone. The order and all its items will be permanently deleted.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/orders/${id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+      
+      if (data.success || response.ok) {
+        // Clear selected order if it was deleted
+        if (selectedOrder && selectedOrder.id === id) {
+          setSelectedOrder(null);
+        }
+        // Refresh orders list
+        await fetchOrders();
+        alert('Order deleted successfully!');
+      } else {
+        alert(data.error || 'Delete failed');
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const canDeleteOrder = (status) => {
+    const statusLower = status?.toLowerCase();
+    return statusLower === 'pending' || statusLower === 'delivered' || statusLower === 'cancelled' || statusLower === 'canceled';
+  };
+
+  const exportOrdersToCSV = () => {
+    if (filteredOrders.length === 0) {
+      alert('No orders to export');
+      return;
+    }
+
+    // CSV Headers
+    const headers = ['Order Number', 'Customer Name', 'Email', 'Phone', 'Date', 'Amount', 'Status', 'Payment Status', 'Address', 'City', 'Country'];
+    
+    // CSV Rows
+    const rows = filteredOrders.map(order => [
+      order.order_number || '',
+      order.customer_name || '',
+      order.email || '',
+      order.phone || '',
+      new Date(order.created_at).toLocaleString(),
+      `$${order.total_amount?.toFixed(2) || '0.00'}`,
+      order.status || '',
+      order.payment_status || '',
+      order.address || '',
+      order.city || '',
+      order.country || ''
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `orders_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const getStatusColor = (status) => {
@@ -379,7 +461,15 @@ const AdminOrders = () => {
               <h1>Order Management</h1>
               <p className="admin-subtitle">View and manage customer orders</p>
             </div>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button 
+                onClick={exportOrdersToCSV}
+                className="btn btn-primary"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                title="Export orders to CSV"
+              >
+                📥 Export CSV
+              </button>
               {(searchParams.get('status') || searchParams.get('filter')) && (
                 <button 
                   onClick={() => navigate('/admin/orders')} 
@@ -404,14 +494,17 @@ const AdminOrders = () => {
         <div className="container">
           <div className="orders-layout">
             <div className="orders-list">
-              <h2>
-                {searchParams.get('filter') === 'non-delivered'
-                  ? `Non-Delivered Orders (${filteredOrders.length})`
-                  : searchParams.get('status') 
-                    ? `${searchParams.get('status').charAt(0).toUpperCase() + searchParams.get('status').slice(1)} Orders (${filteredOrders.length})`
-                    : `All Orders (${filteredOrders.length})`
-                }
-              </h2>
+              <div className="orders-header">
+                <h2>
+                  {searchParams.get('filter') === 'non-delivered'
+                    ? `Non-Delivered Orders (${filteredOrders.length})`
+                    : searchParams.get('status') 
+                      ? `${searchParams.get('status').charAt(0).toUpperCase() + searchParams.get('status').slice(1)} Orders (${filteredOrders.length})`
+                      : `All Orders (${filteredOrders.length})`
+                  }
+                </h2>
+              </div>
+
               <div className="orders-table">
                 <table>
                   <thead>
@@ -457,15 +550,29 @@ const AdminOrders = () => {
                             </span>
                           </td>
                           <td>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                fetchOrderDetails(order.id);
-                              }}
-                              className="btn-view"
-                            >
-                              View
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  fetchOrderDetails(order.id);
+                                }}
+                                className="btn-view"
+                              >
+                                View
+                              </button>
+                              {canDeleteOrder(order.status) && (
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteOrder(order.id, order.order_number);
+                                  }}
+                                  className="btn-delete"
+                                  title="Delete Order"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -614,6 +721,21 @@ const AdminOrders = () => {
                       Cancel
                     </button>
                   </div>
+                  
+                  {canDeleteOrder(selectedOrder.status) && (
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #374151' }}>
+                      <h3 style={{ color: '#ef4444', marginBottom: '0.75rem' }}>Danger Zone</h3>
+                      <button 
+                        onClick={() => deleteOrder(selectedOrder.id, selectedOrder.order_number)}
+                        className="btn-delete-large"
+                      >
+                        🗑️ Delete Order
+                      </button>
+                      <p style={{ fontSize: '0.85rem', color: '#9ca3af', marginTop: '0.5rem' }}>
+                        This will permanently delete this order and all its items. This action cannot be undone.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
