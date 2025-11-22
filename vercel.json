@@ -5,6 +5,10 @@
       "destination": "https://ecommerce-production-5eb5.up.railway.app/api/:path*"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "https://ecommerce-production-5eb5.up.railway.app/sitemap.xml"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
