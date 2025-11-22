@@ -1,0 +1,26 @@
+# robots.txt for Furor Sport Website
+# https://furorsport-lac-one-35.vercel.app/robots.txt
+
+User-agent: *
+Allow: /
+
+# Disallow admin pages
+Disallow: /admin/
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Allow all public pages
+Allow: /
+Allow: /products
+Allow: /product/
+Allow: /about
+Allow: /contact
+Allow: /how-to-order
+
+# Sitemap location
+Sitemap: https://furorsport-lac-one-35.vercel.app/sitemap.xml
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 1
+

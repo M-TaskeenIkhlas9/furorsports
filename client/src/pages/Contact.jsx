@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import emailjs from '@emailjs/browser'
+import SEO from '../components/SEO'
+import { getOrganizationSchema } from '../utils/structuredData'
 import './Contact.css'
 
 const Contact = () => {
+  const organizationSchema = getOrganizationSchema();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -106,6 +109,13 @@ const Contact = () => {
 
   return (
     <div className="contact-page">
+      <SEO
+        title="Contact Us - Furor Sport | Get in Touch | Sialkot, Pakistan"
+        description="Contact Furor Sport for inquiries about sports wear, fitness apparel, and martial arts equipment. WhatsApp: +92 300 8522576, Email: Furorsport1@gmail.com. Located in Sialkot, Pakistan. Worldwide shipping available."
+        keywords="contact Furor Sport, sports wear inquiry, fitness apparel contact, Pakistan sports wear, Sialkot manufacturer, WhatsApp order"
+        url="/contact"
+        structuredData={organizationSchema}
+      />
       <div className="contact-background-image"></div>
       <div className="container">
         <div className="page-header">

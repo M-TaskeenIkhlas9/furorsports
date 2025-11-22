@@ -1,8 +1,19 @@
+import SEO from '../components/SEO'
+import { getOrganizationSchema } from '../utils/structuredData'
 import './About.css'
 
 const About = () => {
+  const organizationSchema = getOrganizationSchema();
+
   return (
     <div className="about-page">
+      <SEO
+        title="About Us - Furor Sport | Family-Owned Sports Wear Manufacturer from Pakistan"
+        description="Learn about Furor Sport, a family-owned company from Sialkot, Pakistan, manufacturing high-quality professional sports wear, fitness apparel, and martial arts equipment. Worldwide shipping available."
+        keywords="about Furor Sport, sports wear manufacturer Pakistan, Sialkot sports wear, family business Pakistan, professional sports wear manufacturer"
+        url="/about"
+        structuredData={organizationSchema}
+      />
       <div className="about-background-image"></div>
       <div className="container">
         <div className="page-header">

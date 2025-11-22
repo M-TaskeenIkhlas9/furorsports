@@ -12,6 +12,7 @@ const contactRoutes = require('./routes/contact');
 const paymentRoutes = require('./routes/payment');
 const adminRoutes = require('./routes/admin');
 const categoryRoutes = require('./routes/categories');
+const sitemapRoutes = require('./routes/sitemap');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +46,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/', sitemapRoutes); // Sitemap at root level /sitemap.xml
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {

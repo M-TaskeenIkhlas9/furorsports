@@ -1,8 +1,15 @@
+import SEO from '../components/SEO'
 import './HowToOrder.css'
 
 const HowToOrder = () => {
   return (
     <div className="how-to-order-page">
+      <SEO
+        title="How to Order - Furor Sport | Step-by-Step Ordering Guide"
+        description="Learn how to order sports wear, fitness apparel, and martial arts equipment from Furor Sport. Simple step-by-step guide: browse products, add to cart, checkout via WhatsApp. Worldwide shipping available."
+        keywords="how to order, order sports wear, WhatsApp ordering, Furor Sport order guide, Pakistan sports wear ordering"
+        url="/how-to-order"
+      />
       <div className="order-background-image"></div>
       <div className="container">
         <div className="page-header">

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import SEO from '../components/SEO'
+import { getOrganizationSchema, getWebsiteSchema } from '../utils/structuredData'
 import './Home.css'
 
 const Home = () => {
@@ -261,8 +263,18 @@ const Home = () => {
     return () => clearInterval(interval)
   }, [slides.length])
 
+  const organizationSchema = getOrganizationSchema();
+  const websiteSchema = getWebsiteSchema();
+
   return (
     <div className="home">
+      <SEO
+        title="Furor Sport - Professional Sports Wear & Fitness Apparel | Pakistan"
+        description="Buy premium sports wear, fitness apparel, compression wear, and martial arts equipment from Furor Sport. Family-owned business from Sialkot, Pakistan. High-quality professional sports wear with worldwide shipping."
+        keywords="sports wear, fitness apparel, compression wear, martial arts equipment, athletic wear, sports uniforms, fitness clothing, Pakistan sports wear, Sialkot sports wear, professional sports wear, gym wear, training apparel"
+        url="/"
+        structuredData={[organizationSchema, websiteSchema]}
+      />
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-background"></div>

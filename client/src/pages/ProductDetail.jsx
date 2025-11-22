@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
+import SEO from '../components/SEO'
+import { getProductSchema, getBreadcrumbSchema } from '../utils/structuredData'
 import './ProductDetail.css'
 
 const ProductDetail = () => {
@@ -96,8 +98,44 @@ const ProductDetail = () => {
     return null
   }
 
+  const productTitle = `${product.name} - Furor Sport | ${product.category || 'Sports Wear'}`;
+  const productDescription = product.description 
+    ? `${product.description.substring(0, 155)}...`
+    : `Buy ${product.name} from Furor Sport. High-quality ${product.category || 'sports wear'} from Sialkot, Pakistan. Professional sports wear with worldwide shipping.`;
+  
+  const productImage = product.images && product.images.length > 0 
+    ? product.images[0].url || product.images[0]
+    : product.image || 'https://furorsport-lac-one-35.vercel.app/images/placeholder-product.jpg';
+
+  const breadcrumbItems = [
+    { name: "Home", url: "https://furorsport-lac-one-35.vercel.app/" },
+    { name: "Products", url: "https://furorsport-lac-one-35.vercel.app/products" }
+  ];
+  if (product.category) {
+    breadcrumbItems.push({ 
+      name: product.category, 
+      url: `https://furorsport-lac-one-35.vercel.app/products?category=${encodeURIComponent(product.category)}` 
+    });
+  }
+  breadcrumbItems.push({ 
+    name: product.name, 
+    url: `https://furorsport-lac-one-35.vercel.app/product/${product.id}` 
+  });
+
+  const productSchema = getProductSchema(product);
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
   return (
     <div className="product-detail-page">
+      <SEO
+        title={productTitle}
+        description={productDescription}
+        keywords={`${product.name}, ${product.category}, sports wear, fitness apparel, Furor Sport, Pakistan, ${product.subcategory || ''}`}
+        image={productImage}
+        url={`/product/${product.id}`}
+        type="product"
+        structuredData={[productSchema, breadcrumbSchema]}
+      />
       <div className="container">
         <div className="product-detail">
           <div className="product-image-section">

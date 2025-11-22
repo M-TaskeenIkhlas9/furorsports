@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import SEO from '../components/SEO'
+import { getCollectionPageSchema, getBreadcrumbSchema } from '../utils/structuredData'
 import './Products.css'
 
 const Products = () => {
@@ -34,8 +36,47 @@ const Products = () => {
     }
   }
 
+  const pageTitle = category 
+    ? `${category} - Furor Sport | Professional Sports Wear`
+    : subcategory
+    ? `${subcategory} - Furor Sport | Professional Sports Wear`
+    : "All Products - Furor Sport | Professional Sports Wear & Fitness Apparel";
+  
+  const pageDescription = category
+    ? `Browse ${category} products from Furor Sport. High-quality professional sports wear and fitness apparel from Sialkot, Pakistan. Worldwide shipping available.`
+    : subcategory
+    ? `Browse ${subcategory} products from Furor Sport. Premium quality sports wear and fitness apparel.`
+    : "Browse all products from Furor Sport. Professional sports wear, fitness apparel, compression wear, and martial arts equipment. Family-owned business from Sialkot, Pakistan.";
+
+  const breadcrumbItems = [
+    { name: "Home", url: "https://furorsport-lac-one-35.vercel.app/" },
+    { name: "Products", url: "https://furorsport-lac-one-35.vercel.app/products" }
+  ];
+  if (category) {
+    breadcrumbItems.push({ 
+      name: category, 
+      url: `https://furorsport-lac-one-35.vercel.app/products?category=${encodeURIComponent(category)}` 
+    });
+  }
+  if (subcategory) {
+    breadcrumbItems.push({ 
+      name: subcategory, 
+      url: `https://furorsport-lac-one-35.vercel.app/products?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}` 
+    });
+  }
+
+  const collectionSchema = getCollectionPageSchema(category || subcategory, products);
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
   return (
     <div className="products-page">
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        keywords={`${category || subcategory || 'sports wear'}, fitness apparel, professional sports wear, Pakistan, Furor Sport, ${category || subcategory || 'athletic wear'}`}
+        url={category ? `/products?category=${encodeURIComponent(category)}` : subcategory ? `/products?subcategory=${encodeURIComponent(subcategory)}` : "/products"}
+        structuredData={[collectionSchema, breadcrumbSchema]}
+      />
       <div className="container">
         <div className="page-header">
           <h1 className="products-page-title">OUR PRODUCTS</h1>
