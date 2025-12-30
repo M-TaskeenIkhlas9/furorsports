@@ -178,7 +178,6 @@ const Home = () => {
           image: product.image || '/images/placeholder.jpg',
           features: features.slice(0, 5), // Limit to 5 features
           cta,
-          price: `Starting at $${parseFloat(product.price).toFixed(2)}`,
           productId: product.id
         }
       })
@@ -206,8 +205,7 @@ const Home = () => {
         'Breathable & Lightweight',
         'Perfect for Gym, Running & Training'
       ],
-      cta: 'SHOP FITNESS WEAR',
-      price: 'Starting at $29.99'
+      cta: 'SHOP FITNESS WEAR'
     },
     {
       title: 'SWIMWEAR',
@@ -222,8 +220,7 @@ const Home = () => {
         'Stylish Color Block Design',
         'Ideal for Competitive Swimming'
       ],
-      cta: 'SHOP SWIMWEAR',
-      price: 'Starting at $34.99'
+      cta: 'SHOP SWIMWEAR'
     },
     {
       title: 'STREET',
@@ -238,8 +235,7 @@ const Home = () => {
         'Versatile Day-to-Night Style',
         'Available in Multiple Colors'
       ],
-      cta: 'SHOP STREET WEAR',
-      price: 'Starting at $19.99'
+      cta: 'SHOP STREET WEAR'
     }
   ]
 
@@ -305,7 +301,6 @@ const Home = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="hero-price">{slides[currentSlide].price}</div>
                   <Link 
                     to={slides[currentSlide]?.productId ? `/product/${slides[currentSlide].productId}` : "/products"} 
                     className="btn-hero-primary"
@@ -471,9 +466,6 @@ const Home = () => {
                     className="product-card product-card-link"
                   >
                     <div className="product-image">
-                      {product.sale_price && product.sale_price < product.price && (
-                        <div className="product-sale-badge-overlay">SALE</div>
-                      )}
                       <img 
                         src={product.image || '/placeholder-product.jpg'} 
                         alt={product.name}
@@ -484,17 +476,6 @@ const Home = () => {
                     </div>
                     <div className="product-info">
                       <h3>{product.name}</h3>
-                      <div className="product-price-container">
-                        {product.sale_price && product.sale_price < product.price ? (
-                          <>
-                            <span className="product-price-sale">{product.sale_price.toFixed(2)}</span>
-                            <span className="product-price-original">{product.price.toFixed(2)}</span>
-                            <span className="sale-badge">SALE</span>
-                          </>
-                        ) : (
-                          <span className="product-price">{product.price.toFixed(2)}</span>
-                        )}
-                      </div>
                       <span className="btn btn-outline">
                         Show Details
                       </span>

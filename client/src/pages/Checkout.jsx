@@ -83,7 +83,7 @@ const Checkout = () => {
     
     items.forEach((item, index) => {
       message += `${index + 1}. *${item.name}*\n`
-      message += `   Qty: ${item.quantity} × $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}\n`
+      message += `   Quantity: ${item.quantity}\n`
       if (item.size) {
         message += `   Size: ${item.size}\n`
       }
@@ -100,8 +100,8 @@ const Checkout = () => {
       message += `\n`
     })
     
-    message += `*Total Amount: $${order.total_amount.toFixed(2)}*\n\n`
-    message += `Please confirm this order and provide payment instructions.`
+    message += `\n*Please provide pricing and payment instructions for this order.*\n\n`
+    message += `Thank you! 🙏`
     
     return message
   }
@@ -335,22 +335,20 @@ const Checkout = () => {
                   <div className="order-item-info">
                     <h4>{item.name}</h4>
                     <p>Quantity: {item.quantity}</p>
+                    {(item.size || item.color) && (
+                      <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#666' }}>
+                        {item.size && <span style={{ marginRight: '1rem' }}>Size: {item.size}</span>}
+                        {item.color && <span>Color: {item.color}</span>}
+                      </div>
+                    )}
                   </div>
-                  <p className="order-item-price">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </p>
                 </div>
               ))}
             </div>
             <div className="order-total">
-              <div className="summary-row">
-                <span>Subtotal:</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-              <div className="summary-row total">
-                <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
+              <p style={{ color: '#666', fontSize: '0.9rem', textAlign: 'center', padding: '1rem' }}>
+                💡 Prices and total amount will be provided in the WhatsApp message when you place your order.
+              </p>
             </div>
           </div>
         </div>

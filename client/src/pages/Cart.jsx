@@ -75,8 +75,6 @@ const Cart = () => {
     }
   }
 
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-
   if (loading) {
     return (
       <div className="cart-page">
@@ -124,26 +122,12 @@ const Cart = () => {
                         {item.color && <span className="variant-badge">Color: {item.color}</span>}
                       </div>
                     )}
-                    <div className="cart-item-price-container">
-                      {item.sale_price && item.sale_price < item.original_price ? (
-                        <>
-                          <span className="cart-price-sale">${item.price.toFixed(2)}</span>
-                          <span className="cart-price-original">${item.original_price.toFixed(2)}</span>
-                        </>
-                      ) : (
-                        <span className="cart-item-price">${item.price.toFixed(2)}</span>
-                      )}
-                    </div>
                   </div>
 
                   <div className="cart-item-quantity">
                     <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
                     <span>{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
-                  </div>
-
-                  <div className="cart-item-total">
-                    <p>${(item.price * item.quantity).toFixed(2)}</p>
                   </div>
 
                   <button 
@@ -158,18 +142,9 @@ const Cart = () => {
 
             <div className="cart-summary">
               <h2>Order Summary</h2>
-              <div className="summary-row">
-                <span>Subtotal:</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-              <div className="summary-row">
-                <span>Shipping:</span>
-                <span>Calculated at checkout</span>
-              </div>
-              <div className="summary-row total">
-                <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
+              <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                Prices will be provided when you place your order via WhatsApp.
+              </p>
               <button 
                 className="btn btn-primary btn-large"
                 onClick={() => navigate('/checkout')}

@@ -119,8 +119,9 @@
 .btn-action {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 8px 16px;
+  padding: 0.5rem 1rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -129,48 +130,58 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  min-width: 90px;
 }
 
 .btn-action svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   stroke-width: 2.5;
+  flex-shrink: 0;
 }
 
 .btn-edit {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: #ffffff;
-  border: 1px solid rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .btn-edit:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
 }
 
 .btn-delete {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
   color: #ffffff;
-  border: 1px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 2px 8px rgba(248, 113, 113, 0.3);
+  width: 40px;
+  padding: 0.5rem;
+  gap: 0;
+  min-width: 40px;
 }
 
 .btn-delete:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
 }
 
 .btn-add-sub {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #ffffff;
-  border: 1px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  min-width: 100px;
 }
 
 .btn-add-sub:hover {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
 }
 
 .subcategory-form-card {
@@ -419,10 +430,50 @@
     width: 100%;
     flex-wrap: wrap;
   }
-
+  
   .btn-action {
-    flex: 1;
-    min-width: 120px;
+    min-width: 80px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.75rem;
+  }
+  
+  .btn-delete {
+    width: 36px;
+    min-width: 36px;
+    padding: 0.45rem;
+  }
+  
+  .btn-add-sub {
+    min-width: 90px;
+  }
+  
+  .btn-action svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-action {
+    min-width: 70px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.7rem;
+  }
+  
+  .btn-delete {
+    width: 32px;
+    min-width: 32px;
+    padding: 0.4rem;
+  }
+  
+  .btn-add-sub {
+    min-width: 80px;
+    font-size: 0.7rem;
+  }
+  
+  .btn-action svg {
+    width: 12px;
+    height: 12px;
   }
 }
 

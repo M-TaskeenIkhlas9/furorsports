@@ -190,7 +190,7 @@ router.post('/create-whatsapp', (req, res) => {
                           [
                             'new_order',
                             'New WhatsApp Order Received',
-                            `New order ${orderNumber} from ${customerInfo.name} - Total: $${totalAmount.toFixed(2)}`,
+                            `New order ${orderNumber} from ${customerInfo.name} - Please provide pricing via WhatsApp`,
                             orderId,
                             orderNumber
                           ],

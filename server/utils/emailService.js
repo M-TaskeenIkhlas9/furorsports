@@ -248,13 +248,11 @@ const sendAdminOrderNotification = async (orderData) => {
     return { success: false, error: 'Email service not configured' };
   }
 
-  // Format order items
+  // Format order items (without prices for professional quote request)
   const itemsHtml = items.map((item, index) => `
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;">${index + 1}. ${item.name}</td>
       <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${item.price.toFixed(2)}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
       <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">
         ${item.size ? `Size: ${item.size}` : '-'}<br>
         ${item.color ? `Color: ${item.color}` : ''}
@@ -324,9 +322,7 @@ const sendAdminOrderNotification = async (orderData) => {
               <thead>
                 <tr>
                   <th>Product</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: right;">Price</th>
-                  <th style="text-align: right;">Total</th>
+                  <th style="text-align: center;">Quantity</th>
                   <th style="text-align: center;">Variants</th>
                 </tr>
               </thead>
@@ -335,8 +331,10 @@ const sendAdminOrderNotification = async (orderData) => {
               </tbody>
             </table>
             
-            <div class="total">
-              <strong>Total Amount: $${totalAmount.toFixed(2)}</strong>
+            <div style="background: #e3f2fd; padding: 20px; border-radius: 5px; margin-top: 20px; border-left: 4px solid #2196f3;">
+              <p style="margin: 0; color: #1565c0; font-weight: bold;">
+                💬 Customer has requested pricing via WhatsApp. Please provide quote and discuss pricing with the customer.
+              </p>
             </div>
 
             <div style="background: #fff3cd; padding: 20px; border-radius: 5px; margin-top: 30px; border-left: 4px solid #f59e0b;">
@@ -375,13 +373,13 @@ Address: ${address}, ${city}, ${country}
 
 Order Items:
 ${items.map((item, index) => {
-  let itemText = `${index + 1}. ${item.name} - Qty: ${item.quantity} × $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}`;
+  let itemText = `${index + 1}. ${item.name} - Quantity: ${item.quantity}`;
   if (item.size) itemText += ` (Size: ${item.size})`;
   if (item.color) itemText += ` (Color: ${item.color})`;
   return itemText;
 }).join('\n')}
 
-Total Amount: $${totalAmount.toFixed(2)}
+💬 Customer has requested pricing via WhatsApp. Please provide quote and discuss pricing with the customer.
 
 ⚠️ ACTION REQUIRED:
 1. Check WhatsApp for the customer's message

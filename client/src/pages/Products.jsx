@@ -99,9 +99,6 @@ const Products = () => {
               <div key={product.id} className="product-card">
                 <Link to={`/product/${product.id}`}>
                   <div className="product-image">
-                    {product.sale_price && product.sale_price < product.price && (
-                      <div className="product-sale-badge-overlay">SALE</div>
-                    )}
                     <img 
                       src={product.image || '/placeholder-product.jpg'} 
                       alt={product.name}
@@ -113,17 +110,6 @@ const Products = () => {
                   <div className="product-info">
                     <h3>{product.name}</h3>
                     <p className="product-category">{product.category}</p>
-                    <div className="product-price-container">
-                      {product.sale_price && product.sale_price < product.price ? (
-                        <>
-                          <span className="product-price-sale">{product.sale_price.toFixed(2)}</span>
-                          <span className="product-price-original">{product.price.toFixed(2)}</span>
-                          <span className="sale-badge">SALE</span>
-                        </>
-                      ) : (
-                        <span className="product-price">{product.price.toFixed(2)}</span>
-                      )}
-                    </div>
                     <button className="btn btn-primary">View Details</button>
                   </div>
                 </Link>

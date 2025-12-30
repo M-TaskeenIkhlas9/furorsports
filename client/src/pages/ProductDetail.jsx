@@ -141,9 +141,6 @@ const ProductDetail = () => {
           <div className="product-image-section">
             {product.images && product.images.length > 0 ? (
               <div className="image-carousel">
-                {product.sale_price && product.sale_price < product.price && (
-                  <div className="product-sale-badge-overlay-detail">SALE</div>
-                )}
                 <img 
                   src={product.images[currentImageIndex] || '/placeholder-product.jpg'} 
                   alt={product.name}
@@ -182,9 +179,6 @@ const ProductDetail = () => {
               </div>
             ) : (
               <div style={{ position: 'relative' }}>
-                {product.sale_price && product.sale_price < product.price && (
-                  <div className="product-sale-badge-overlay-detail">SALE</div>
-                )}
                 <img 
                   src={product.image || '/placeholder-product.jpg'} 
                   alt={product.name}
@@ -199,17 +193,6 @@ const ProductDetail = () => {
           <div className="product-info-section">
             <h1>{product.name}</h1>
             <p className="product-category">{product.category} {product.subcategory && `> ${product.subcategory}`}</p>
-            <div className="product-price-container">
-              {product.sale_price && product.sale_price < product.price ? (
-                <>
-                  <span className="product-price-sale">{product.sale_price.toFixed(2)}</span>
-                  <span className="product-price-original">{product.price.toFixed(2)}</span>
-                  <span className="sale-badge">SALE</span>
-                </>
-              ) : (
-                <span className="product-price">{product.price.toFixed(2)}</span>
-              )}
-            </div>
             
             <div className="product-description">
               <h3>Description</h3>

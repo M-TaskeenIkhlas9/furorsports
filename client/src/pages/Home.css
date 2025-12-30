@@ -600,7 +600,7 @@
 /* Values Section */
 .values-section {
   background: #0a0a0a;
-  padding: 80px 0 0 0;
+  padding: 80px 0 80px 0;
   margin: 0;
   border: none;
   position: relative;
@@ -643,11 +643,12 @@
 .values-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0;
+  gap: 20px;
   min-height: 600px;
   width: 100%;
-  margin: 0;
-  padding: 0;
+  max-width: 1400px;
+  margin: 60px auto 0;
+  padding: 0 20px;
   position: relative;
   z-index: 2;
 }
@@ -660,11 +661,14 @@
   background-position: center;
   background-repeat: no-repeat;
   overflow: hidden;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .value-card:hover {
-  transform: scale(1.02);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
 .value-card-overlay {
@@ -673,44 +677,58 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.15) 50%, transparent 100%);
   z-index: 1;
 }
 
 .value-card-title {
   position: absolute;
   z-index: 2;
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: 3px;
+  text-shadow: 
+    0 0 10px rgba(0, 0, 0, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.9),
+    2px 4px 8px rgba(0, 0, 0, 0.7);
   margin: 0;
   padding: 0;
+  line-height: 1.2;
+  font-family: 'Arial Black', 'Arial Bold', sans-serif;
 }
 
 .value-card-fitness .value-card-title,
 .value-card-sports .value-card-title,
 .value-card-street .value-card-title {
-  bottom: 15%;
-  right: 5%;
+  bottom: 40px;
+  left: 40px;
+  right: 40px;
 }
 
 .value-card-fitness {
-  background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920&h=1200&fit=crop&q=80');
-  filter: brightness(0.7) contrast(1.2) saturate(1.1);
+  background-image: url('/images/home/fitness-wear.jpg'), url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920&h=1200&fit=crop&q=80');
+  filter: brightness(0.9) contrast(1.1) saturate(1.05);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .value-card-sports {
-  background-image: url('/images/products/furor-sport/athletic-swimsuit.jpg');
-  filter: brightness(0.7) contrast(1.2) saturate(1.1);
+  background-image: url('/images/home/sports-wear.jpg'), url('https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1920&h=1200&fit=crop&q=80');
+  filter: brightness(0.9) contrast(1.1) saturate(1.05);
   background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .value-card-street {
-  background-image: url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1920&h=1200&fit=crop&q=80');
-  filter: brightness(0.7) contrast(1.25) saturate(1.15);
+  background-image: url('/images/home/street-wear.jpg'), url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1920&h=1200&fit=crop&q=80');
+  filter: brightness(0.9) contrast(1.15) saturate(1.1);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 /* Products Section */
@@ -890,6 +908,12 @@
   margin-bottom: 1rem;
 }
 
+.product-price::before {
+  content: '$';
+  font-size: 1.3rem;
+  margin-right: 2px;
+}
+
 .product-price-container {
   display: flex;
   align-items: center;
@@ -904,10 +928,22 @@
   color: #ef4444;
 }
 
+.product-price-sale::before {
+  content: '$';
+  font-size: 1.3rem;
+  margin-right: 2px;
+}
+
 .product-price-original {
   font-size: 1rem;
   color: #9ca3af;
   text-decoration: line-through;
+}
+
+.product-price-original::before {
+  content: '$';
+  font-size: 0.9rem;
+  margin-right: 2px;
 }
 
 .sale-badge {
@@ -1222,6 +1258,22 @@
   .hero-image-container {
     height: 400px;
   }
+
+  .values-grid {
+    gap: 15px;
+    padding: 0 15px;
+  }
+
+  .value-card {
+    min-height: 500px;
+  }
+
+  .value-card-title {
+    font-size: 1.5rem;
+    bottom: 35px;
+    left: 35px;
+    right: 35px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1300,14 +1352,22 @@
   .values-grid {
     grid-template-columns: 1fr;
     min-height: auto;
+    gap: 20px;
+    padding: 0 15px;
+    margin-top: 40px;
   }
 
   .value-card {
     min-height: 400px;
+    border-radius: 8px;
   }
 
   .value-card-title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    bottom: 30px;
+    left: 30px;
+    right: 30px;
   }
 
   .why-choose-section {
