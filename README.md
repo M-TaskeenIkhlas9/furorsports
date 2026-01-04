@@ -97,11 +97,7 @@ ecommerce/
 │   │   └── main.jsx         # React entry point
 │   └── package.json
 ├── package.json             # Root package.json
-├── ecosystem.config.js      # PM2 configuration
-├── Dockerfile               # Docker configuration
-├── docker-compose.yml       # Docker Compose configuration
-├── vercel.json              # Vercel deployment configuration
-└── DEPLOY_STEPS.md          # Deployment guide
+└── vercel.json              # Vercel deployment configuration (optional)
 
 ```
 
@@ -309,7 +305,7 @@ This website uses **WhatsApp** for order processing, making it ideal for busines
 - Can be changed via environment variable `VITE_WHATSAPP_NUMBER`
 
 ### Stripe Integration (Optional):
-Stripe payment integration is available but optional. See `STRIPE_SETUP.md` for configuration if you want to enable direct payments.
+Stripe payment integration is available but optional. Configure Stripe keys in environment variables if you want to enable direct payments.
 
 ## Admin Panel
 
@@ -355,16 +351,14 @@ This project is created for Furor Sport.
 
 ## Deployment
 
-The application is production-ready! See deployment guides:
-- `DEPLOY_STEPS.md` - Step-by-step deployment guide
-- `DEPLOYMENT_READINESS_REPORT.md` - Deployment readiness checklist
-- `DEPLOYMENT.md` - Detailed deployment instructions
-- `VERCEL_DEPLOYMENT.md` - Vercel + Railway deployment
+The application is production-ready! 
 
 ### Quick Deploy:
-1. Build: `npm run build:prod`
-2. Set environment variables
-3. Deploy using PM2, Docker, or cloud platforms (Vercel + Railway)
+1. Build frontend: `npm run build`
+2. Set environment variables (production URLs, etc.)
+3. Deploy to your preferred hosting platform (Hostinger, Render, Railway, Vercel, etc.)
+4. Configure Node.js environment on your hosting platform
+5. Point your domain to the hosting server
 
 ## Support
 
