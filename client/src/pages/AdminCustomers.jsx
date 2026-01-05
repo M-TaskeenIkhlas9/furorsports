@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config/api';
 import './AdminCustomers.css';
 
 const AdminCustomers = () => {
@@ -41,7 +42,7 @@ const AdminCustomers = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch('/api/admin/customers');
+      const response = await fetch(`${API_URL}/api/admin/customers');
       const data = await response.json();
       setCustomers(data);
       setFilteredCustomers(data);
@@ -54,7 +55,7 @@ const AdminCustomers = () => {
 
   const fetchCustomerDetails = async (email) => {
     try {
-      const response = await fetch(`/api/admin/customers/${encodeURIComponent(email)}`);
+      const response = await fetch(`${API_URL}/api/admin/customers/${encodeURIComponent(email)}`);
       const data = await response.json();
       setSelectedCustomer(data);
     } catch (error) {
@@ -65,7 +66,7 @@ const AdminCustomers = () => {
   const fetchOrderDetails = async (orderId) => {
     setLoadingOrderDetails(true);
     try {
-      const response = await fetch(`/api/admin/orders/${orderId}`);
+      const response = await fetch(`${API_URL}/api/admin/orders/${orderId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch order details');
       }

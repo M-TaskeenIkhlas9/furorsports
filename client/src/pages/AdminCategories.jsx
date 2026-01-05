@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config/api';
 import './AdminCategories.css';
 
 const AdminCategories = () => {
@@ -24,7 +25,7 @@ const AdminCategories = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch(`${API_URL}/api/categories');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -40,7 +41,7 @@ const AdminCategories = () => {
   const handleAddCategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/categories', {
+      const response = await fetch(`${API_URL}/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: categoryForm.name })
@@ -63,7 +64,7 @@ const AdminCategories = () => {
   const handleUpdateCategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/categories/${editingCategory.id}`, {
+      const response = await fetch(`${API_URL}/api/categories/${editingCategory.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: categoryForm.name })
@@ -89,7 +90,7 @@ const AdminCategories = () => {
     }
 
     try {
-      const response = await fetch(`/api/categories/${id}`, {
+      const response = await fetch(`${API_URL}/api/categories/${id}`, {
         method: 'DELETE'
       });
 
@@ -108,7 +109,7 @@ const AdminCategories = () => {
   const handleAddSubcategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/categories/${subcategoryForm.categoryId}/subcategories`, {
+      const response = await fetch(`${API_URL}/api/categories/${subcategoryForm.categoryId}/subcategories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: subcategoryForm.name })
@@ -131,7 +132,7 @@ const AdminCategories = () => {
   const handleUpdateSubcategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/categories/subcategories/${editingSubcategory.id}`, {
+      const response = await fetch(`${API_URL}/api/categories/subcategories/${editingSubcategory.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: subcategoryForm.name })
@@ -157,7 +158,7 @@ const AdminCategories = () => {
     }
 
     try {
-      const response = await fetch(`/api/categories/subcategories/${id}`, {
+      const response = await fetch(`${API_URL}/api/categories/subcategories/${id}`, {
         method: 'DELETE'
       });
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { API_URL } from '../config/api';
 import './AdminProducts.css';
 
 const AdminProducts = () => {
@@ -45,7 +46,7 @@ const AdminProducts = () => {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/products');
+      const response = await fetch(`${API_URL}/api/admin/products`);
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
@@ -64,7 +65,7 @@ const AdminProducts = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch(`${API_URL}/api/categories`);
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -176,7 +177,7 @@ const AdminProducts = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('image', imageFile);
 
-      const response = await fetch('/api/admin/upload-image', {
+      const response = await fetch(`${API_URL}/api/admin/upload-image`, {
         method: 'POST',
         body: formDataToSend,
       });
@@ -203,8 +204,8 @@ const AdminProducts = () => {
     
     try {
       const url = editingProduct 
-        ? `/api/admin/products/${editingProduct.id}`
-        : '/api/admin/products';
+        ? `${API_URL}/api/admin/products/${editingProduct.id}`
+        : `${API_URL}/api/admin/products`;
       
       const method = editingProduct ? 'PUT' : 'POST';
       
@@ -244,7 +245,7 @@ const AdminProducts = () => {
 
   const fetchProductImages = async (productId) => {
     try {
-      const response = await fetch(`/api/products/${productId}`);
+      const response = await fetch(`${API_URL}/api/products/${productId}`);
       if (response.ok) {
         const data = await response.json();
         setProductImages(data.imageData || []);
@@ -282,7 +283,7 @@ const AdminProducts = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/products/${id}`, {
+      const response = await fetch(`${API_URL}/api/admin/products/${id}`, {
         method: 'DELETE',
       });
 
@@ -596,7 +597,7 @@ const AdminProducts = () => {
                                   onClick={async () => {
                                     if (!window.confirm('Are you sure you want to delete this image?')) return;
                                     try {
-                                      const deleteResponse = await fetch(`/api/admin/products/${editingProduct.id}/images/${img.id}`, {
+                                      const deleteResponse = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}/images/${img.id}`, {
                                         method: 'DELETE'
                                       });
                                       if (deleteResponse.ok) {
@@ -659,7 +660,7 @@ const AdminProducts = () => {
                                 onClick={async () => {
                                   if (!newImageUrl.trim()) return;
                                   try {
-                                    const response = await fetch(`/api/admin/products/${editingProduct.id}/images`, {
+                                    const response = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}/images`, {
                                       method: 'POST',
                                       headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify({ imageUrl: newImageUrl })
@@ -710,7 +711,7 @@ const AdminProducts = () => {
                                       const formDataToSend = new FormData();
                                       formDataToSend.append('image', newImageFile);
 
-                                      const uploadResponse = await fetch('/api/admin/upload-image', {
+                                      const uploadResponse = await fetch(`${API_URL}/api/admin/upload-image`, {
                                         method: 'POST',
                                         body: formDataToSend
                                       });
@@ -719,7 +720,7 @@ const AdminProducts = () => {
                                         const uploadData = await uploadResponse.json();
                                         const imageUrl = `/images/products/${uploadData.filename}`;
                                         
-                                        const addResponse = await fetch(`/api/admin/products/${editingProduct.id}/images`, {
+                                        const addResponse = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}/images`, {
                                           method: 'POST',
                                           headers: { 'Content-Type': 'application/json' },
                                           body: JSON.stringify({ imageUrl })
@@ -769,7 +770,7 @@ const AdminProducts = () => {
                                 type="button"
                                 onClick={async () => {
                                   try {
-                                    const response = await fetch(`/api/admin/products/${editingProduct.id}/variants/${variant.id}`, {
+                                    const response = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}/variants/${variant.id}`, {
                                       method: 'DELETE'
                                     });
                                     if (response.ok) {
@@ -811,7 +812,7 @@ const AdminProducts = () => {
                                 return;
                               }
                               try {
-                                const response = await fetch(`/api/admin/products/${editingProduct.id}/variants`, {
+                                const response = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}/variants`, {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify(newVariant)

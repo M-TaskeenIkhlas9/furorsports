@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { API_URL } from '../config/api';
 import './AdminOrders.css';
 
 const AdminOrders = () => {
@@ -44,7 +45,7 @@ const AdminOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('/api/admin/orders');
+      const response = await fetch(`${API_URL}/api/admin/orders`);
       const data = await response.json();
       setOrders(data);
       // Show all orders by default - filtering will be handled in useEffect
@@ -57,7 +58,7 @@ const AdminOrders = () => {
 
   const fetchOrderDetails = async (id) => {
     try {
-      const response = await fetch(`/api/admin/orders/${id}`);
+      const response = await fetch(`${API_URL}/api/admin/orders/${id}`);
       const data = await response.json();
       setSelectedOrder(data);
     } catch (error) {
@@ -67,7 +68,7 @@ const AdminOrders = () => {
 
   const updateOrderStatus = async (id, status) => {
     try {
-      const response = await fetch(`/api/admin/orders/${id}/status`, {
+      const response = await fetch(`${API_URL}/api/admin/orders/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +104,7 @@ const AdminOrders = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/orders/${id}`, {
+      const response = await fetch(`${API_URL}/api/admin/orders/${id}`, {
         method: 'DELETE',
       });
 

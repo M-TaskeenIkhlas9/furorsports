@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config/api';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -61,7 +62,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/dashboard/stats');
+      const response = await fetch(`${API_URL}/api/admin/dashboard/stats`);
       const data = await response.json();
       setStats(data);
     } catch (error) {
@@ -73,7 +74,7 @@ const AdminDashboard = () => {
 
   const fetchRecentOrders = async () => {
     try {
-      const response = await fetch('/api/admin/orders');
+      const response = await fetch(`${API_URL}/api/admin/orders`);
       const data = await response.json();
       // Get last 10 orders
       setRecentOrders(data.slice(0, 10));
@@ -84,7 +85,7 @@ const AdminDashboard = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('/api/admin/notifications');
+      const response = await fetch(`${API_URL}/api/admin/notifications`);
       const data = await response.json();
       setNotifications(data);
     } catch (error) {
@@ -94,7 +95,7 @@ const AdminDashboard = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await fetch('/api/admin/notifications/unread-count');
+      const response = await fetch(`${API_URL}/api/admin/notifications/unread-count`);
       const data = await response.json();
       setUnreadCount(data.count);
     } catch (error) {
@@ -104,7 +105,7 @@ const AdminDashboard = () => {
 
   const markAsRead = async (id) => {
     try {
-      await fetch(`/api/admin/notifications/${id}/read`, { method: 'PUT' });
+      await fetch(`${API_URL}/api/admin/notifications/${id}/read`, { method: 'PUT' });
       fetchNotifications();
       fetchUnreadCount();
     } catch (error) {
@@ -114,7 +115,7 @@ const AdminDashboard = () => {
 
   const markAllAsRead = async () => {
     try {
-      await fetch('/api/admin/notifications/read-all', { method: 'PUT' });
+      await fetch(`${API_URL}/api/admin/notifications/read-all`, { method: 'PUT' });
       fetchNotifications();
       fetchUnreadCount();
     } catch (error) {
@@ -145,7 +146,7 @@ const AdminDashboard = () => {
     setChangingPassword(true);
     
     try {
-      const response = await fetch('/api/admin/change-password', {
+      const response = await fetch(`${API_URL}/api/admin/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
