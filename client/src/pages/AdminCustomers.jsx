@@ -42,7 +42,7 @@ const AdminCustomers = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/customers');
+      const response = await fetch(`${API_URL}/api/admin/customers`);
       const data = await response.json();
       setCustomers(data);
       setFilteredCustomers(data);
