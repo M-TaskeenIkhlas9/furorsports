@@ -25,7 +25,7 @@ const AdminCategories = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/categories');
+      const response = await fetch(`${API_URL}/api/fetch(`${API_URL}/api/categories`);
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -41,7 +41,7 @@ const AdminCategories = () => {
   const handleAddCategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/api/categories', {
+      const response = await fetch(`${API_URL}/api/fetch(`${API_URL}/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: categoryForm.name })
