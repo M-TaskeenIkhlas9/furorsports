@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDb } = require('../database/db');
+const { pool } = require('../database/db');
 const { sendOrderConfirmationEmail } = require('../utils/emailService');
 
 // Initialize Stripe with error handling
@@ -103,7 +103,6 @@ router.post('/verify-payment', async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === 'paid') {
-      const db = getDb();
       const metadata = session.metadata;
       
       // Generate order number
@@ -113,131 +112,107 @@ router.post('/verify-payment', async (req, res) => {
       // Get cart items from session
       const cartSessionId = metadata.sessionId;
       
-      db.all(
+      const [cartItems] = await pool.query(
         `SELECT c.*, p.name, p.price, p.description 
          FROM cart c 
          JOIN products p ON c.product_id = p.id 
          WHERE c.session_id = ?`,
-        [cartSessionId],
-        (err, cartItems) => {
-          if (err) {
-            return res.status(500).json({ error: err.message });
-          }
-
-          db.serialize(() => {
-            // Insert order
-            db.run(
-              `INSERT INTO orders (
-                order_number, customer_name, email, phone, address, city, country, 
-                total_amount, status, payment_intent_id, payment_status
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'processing', ?, 'paid')`,
-              [
-                orderNumber,
-                metadata.customerName,
-                metadata.customerEmail,
-                metadata.customerPhone,
-                metadata.customerAddress,
-                metadata.customerCity,
-                metadata.customerCountry,
-                totalAmount,
-                session.payment_intent
-              ],
-              function(err) {
-                if (err) {
-                  return res.status(500).json({ error: err.message });
-                }
-
-                const orderId = this.lastID;
-
-                // Insert order items
-                const stmt = db.prepare(
-                  'INSERT INTO order_items (order_id, product_id, quantity, price, size, color) VALUES (?, ?, ?, ?, ?, ?)'
-                );
-
-                let itemsProcessed = 0;
-                let hasError = false;
-                
-                cartItems.forEach(item => {
-                  stmt.run([orderId, item.product_id, item.quantity, item.price, item.size || null, item.color || null], (err) => {
-                    if (err && !hasError) {
-                      hasError = true;
-                      stmt.finalize(() => {
-                        return res.status(500).json({ error: err.message });
-                      });
-                      return;
-                    }
-                    if (!hasError) {
-                      itemsProcessed++;
-                      if (itemsProcessed === cartItems.length) {
-                        stmt.finalize(() => {
-                          // Clear cart
-                          db.run('DELETE FROM cart WHERE session_id = ?', [cartSessionId], (err) => {
-                            if (err) {
-                              return res.status(500).json({ error: err.message });
-                            }
-                            
-                            // Send order confirmation email to customer (non-blocking)
-                            const shippingAddress = `${metadata.customerAddress}, ${metadata.customerCity}, ${metadata.customerCountry}`;
-                            const orderEmailData = {
-                              orderNumber,
-                              customerName: metadata.customerName,
-                              customerEmail: metadata.customerEmail,
-                              totalAmount,
-                              items: cartItems.map(item => ({
-                                name: item.name,
-                                quantity: item.quantity,
-                                price: item.price
-                              })),
-                              shippingAddress
-                            };
-                            
-                            sendOrderConfirmationEmail(orderEmailData).then(result => {
-                              if (result.success) {
-                                console.log('Order confirmation email sent to customer');
-                              } else {
-                                console.log('Order confirmation email failed:', result.error);
-                              }
-                            }).catch(err => {
-                              console.error('Error sending order confirmation email:', err);
-                            });
-                            
-                            // Create admin notification (non-blocking)
-                            db.run(
-                              `INSERT INTO admin_notifications (type, title, message, order_id, order_number)
-                               VALUES (?, ?, ?, ?, ?)`,
-                              [
-                                'new_order',
-                                'New Order Received',
-                                `New order ${orderNumber} from ${metadata.customerName} - Total: $${totalAmount.toFixed(2)}`,
-                                orderId,
-                                orderNumber
-                              ],
-                              (notifErr) => {
-                                if (notifErr) {
-                                  console.error('Error creating admin notification:', notifErr);
-                                } else {
-                                  console.log('Admin notification created for order:', orderNumber);
-                                }
-                              }
-                            );
-                            
-                            res.json({
-                              message: 'Order created successfully',
-                              orderNumber,
-                              orderId,
-                              paymentStatus: 'paid'
-                            });
-                          });
-                        });
-                      }
-                    }
-                  });
-                });
-              }
-            );
-          });
-        }
+        [cartSessionId]
       );
+
+      const connection = await pool.getConnection();
+      await connection.beginTransaction();
+      
+      try {
+        // Insert order
+        const [orderResult] = await connection.query(
+          `INSERT INTO orders (
+            order_number, customer_name, email, phone, address, city, country, 
+            total_amount, status, payment_intent_id, payment_status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'processing', ?, 'paid')`,
+          [
+            orderNumber,
+            metadata.customerName,
+            metadata.customerEmail,
+            metadata.customerPhone,
+            metadata.customerAddress,
+            metadata.customerCity,
+            metadata.customerCountry,
+            totalAmount,
+            session.payment_intent
+          ]
+        );
+
+        const orderId = orderResult.insertId;
+
+        // Insert order items
+        for (const item of cartItems) {
+          await connection.query(
+            'INSERT INTO order_items (order_id, product_id, quantity, price, size, color) VALUES (?, ?, ?, ?, ?, ?)',
+            [orderId, item.product_id, item.quantity, item.price, item.size || null, item.color || null]
+          );
+        }
+
+        // Clear cart
+        await connection.query('DELETE FROM cart WHERE session_id = ?', [cartSessionId]);
+        
+        // Create admin notification (non-blocking)
+        try {
+          await connection.query(
+            `INSERT INTO admin_notifications (type, title, message, order_id, order_number)
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+              'new_order',
+              'New Order Received',
+              `New order ${orderNumber} from ${metadata.customerName} - Total: $${totalAmount.toFixed(2)}`,
+              orderId,
+              orderNumber
+            ]
+          );
+          console.log('Admin notification created for order:', orderNumber);
+        } catch (notifErr) {
+          console.error('Error creating admin notification:', notifErr);
+        }
+        
+        await connection.commit();
+        
+        // Send order confirmation email to customer (non-blocking)
+        const shippingAddress = `${metadata.customerAddress}, ${metadata.customerCity}, ${metadata.customerCountry}`;
+        const orderEmailData = {
+          orderNumber,
+          customerName: metadata.customerName,
+          customerEmail: metadata.customerEmail,
+          totalAmount,
+          items: cartItems.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          shippingAddress
+        };
+        
+        sendOrderConfirmationEmail(orderEmailData).then(result => {
+          if (result.success) {
+            console.log('Order confirmation email sent to customer');
+          } else {
+            console.log('Order confirmation email failed:', result.error);
+          }
+        }).catch(err => {
+          console.error('Error sending order confirmation email:', err);
+        });
+        
+        res.json({
+          message: 'Order created successfully',
+          orderNumber,
+          orderId,
+          paymentStatus: 'paid'
+        });
+      } catch (err) {
+        await connection.rollback();
+        throw err;
+      } finally {
+        connection.release();
+      }
     } else {
       res.status(400).json({ error: 'Payment not completed' });
     }
@@ -251,4 +226,3 @@ router.post('/verify-payment', async (req, res) => {
 // This is handled separately because webhooks need raw body, not JSON
 
 module.exports = router;
-

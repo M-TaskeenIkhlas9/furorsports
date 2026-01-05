@@ -1,24 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const { getDb } = require('../database/db');
+const { pool } = require('../database/db');
 
 // Generate sitemap.xml
-router.get('/sitemap.xml', (req, res) => {
-  const db = getDb();
-  const baseUrl = process.env.CLIENT_URL || 'https://furorsport-lac-one-35.vercel.app';
-  
-  // Static pages
-  const staticPages = [
-    { url: '', changefreq: 'daily', priority: '1.0' },
-    { url: '/products', changefreq: 'daily', priority: '0.9' },
-    { url: '/about', changefreq: 'monthly', priority: '0.8' },
-    { url: '/contact', changefreq: 'monthly', priority: '0.8' },
-    { url: '/how-to-order', changefreq: 'monthly', priority: '0.7' }
-  ];
+router.get('/sitemap.xml', async (req, res) => {
+  try {
+    const baseUrl = process.env.CLIENT_URL || 'https://furorsport-lac-one-35.vercel.app';
+    
+    // Static pages
+    const staticPages = [
+      { url: '', changefreq: 'daily', priority: '1.0' },
+      { url: '/products', changefreq: 'daily', priority: '0.9' },
+      { url: '/about', changefreq: 'monthly', priority: '0.8' },
+      { url: '/contact', changefreq: 'monthly', priority: '0.8' },
+      { url: '/how-to-order', changefreq: 'monthly', priority: '0.7' }
+    ];
 
-  // Get all products from database
-  db.all('SELECT id, updated_at FROM products ORDER BY created_at DESC', [], (err, products) => {
-    if (err) {
+    // Get all products from database
+    let products = [];
+    try {
+      const [productRows] = await pool.query('SELECT id, updated_at, created_at FROM products ORDER BY created_at DESC');
+      products = productRows;
+    } catch (err) {
       console.error('Error fetching products for sitemap:', err);
       // Return sitemap with just static pages if products query fails
       return generateSitemapXML(staticPages, baseUrl, res);
@@ -36,7 +39,19 @@ router.get('/sitemap.xml', (req, res) => {
     const allPages = [...staticPages, ...productPages];
 
     generateSitemapXML(allPages, baseUrl, res);
-  });
+  } catch (err) {
+    console.error('Error generating sitemap:', err);
+    // Return basic sitemap on error
+    const baseUrl = process.env.CLIENT_URL || 'https://furorsport-lac-one-35.vercel.app';
+    const staticPages = [
+      { url: '', changefreq: 'daily', priority: '1.0' },
+      { url: '/products', changefreq: 'daily', priority: '0.9' },
+      { url: '/about', changefreq: 'monthly', priority: '0.8' },
+      { url: '/contact', changefreq: 'monthly', priority: '0.8' },
+      { url: '/how-to-order', changefreq: 'monthly', priority: '0.7' }
+    ];
+    generateSitemapXML(staticPages, baseUrl, res);
+  }
 });
 
 function generateSitemapXML(pages, baseUrl, res) {
@@ -64,4 +79,3 @@ function generateSitemapXML(pages, baseUrl, res) {
 }
 
 module.exports = router;
-

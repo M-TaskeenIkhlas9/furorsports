@@ -37,7 +37,10 @@ app.use('/images', express.static(path.join(__dirname, '../client/public/images'
 
 // Initialize database
 const db = require('./database/db');
-db.init();
+db.init().catch(err => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
+});
 
 // API Routes (must come before static files)
 app.use('/api/products', productRoutes);
