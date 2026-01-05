@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
+import { API_URL, getImageUrl } from '../config/api'
 import './Cart.css'
 
 const Cart = () => {
@@ -20,7 +21,7 @@ const Cart = () => {
     }
 
     try {
-      const response = await fetch(`/api/cart/${sessionId}`)
+      const response = await fetch(`${API_URL}/api/cart/${sessionId}`)
       if (response.ok) {
         const data = await response.json()
         setCartItems(data)
@@ -36,7 +37,7 @@ const Cart = () => {
     const sessionId = localStorage.getItem('sessionId')
     
     try {
-      const response = await fetch('/api/cart/update', {
+      const response = await fetch(`${API_URL}/api/cart/update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -58,7 +59,7 @@ const Cart = () => {
     const sessionId = localStorage.getItem('sessionId')
     
     try {
-      const response = await fetch('/api/cart/remove', {
+      const response = await fetch(`${API_URL}/api/cart/remove`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -104,7 +105,7 @@ const Cart = () => {
                 <div key={item.id} className="cart-item">
                   <Link to={`/product/${item.product_id}`} className="cart-item-image">
                     <img 
-                      src={item.image || '/placeholder-product.jpg'} 
+                      src={getImageUrl(item.image) || '/placeholder-product.jpg'} 
                       alt={item.name}
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/150x150?text=Product'

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { API_URL } from '../config/api';
+import { API_URL, getImageUrl } from '../config/api';
 import './AdminProducts.css';
 
 const AdminProducts = () => {
@@ -483,7 +483,7 @@ const AdminProducts = () => {
                       {formData.image && (
                         <div className="image-preview-container">
                           <img 
-                            src={formData.image} 
+                            src={getImageUrl(formData.image)} 
                             alt="Preview" 
                             className="image-preview"
                             onError={(e) => {
@@ -504,7 +504,7 @@ const AdminProducts = () => {
                       {imagePreview && (
                         <div className="image-preview-container">
                           <img 
-                            src={imagePreview} 
+                            src={getImageUrl(imagePreview)} 
                             alt="Preview" 
                             className="image-preview"
                           />
@@ -590,7 +590,7 @@ const AdminProducts = () => {
                         <div className="images-list">
                           {productImages.map((img) => (
                             <div key={img.id} className="image-item">
-                              <img src={img.image_url} alt={`Product image ${img.id}`} />
+                              <img src={getImageUrl(img.image_url)} alt={`Product image ${img.id}`} />
                               {img.id !== 0 && (
                                 <button
                                   type="button"
@@ -920,7 +920,7 @@ const AdminProducts = () => {
                         <td>{product.id}</td>
                         <td>
                           <img 
-                            src={product.image || 'https://via.placeholder.com/50'} 
+                            src={getImageUrl(product.image) || 'https://via.placeholder.com/50'} 
                             alt={product.name}
                             className="product-thumb"
                             loading="lazy"

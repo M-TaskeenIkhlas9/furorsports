@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../config/api';
+import { API_URL, getImageUrl } from '../config/api';
 import './AdminCustomers.css';
 
 const AdminCustomers = () => {
@@ -373,10 +373,7 @@ const AdminCustomers = () => {
                       <div className="order-items-list">
                         {selectedOrderDetails.items && selectedOrderDetails.items.length > 0 ? (
                           selectedOrderDetails.items.map((item, index) => {
-                            let imageUrl = item.image || 'https://via.placeholder.com/80?text=No+Image';
-                            if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
-                              imageUrl = window.location.origin + imageUrl;
-                            }
+                            const imageUrl = getImageUrl(item.image) || 'https://via.placeholder.com/80?text=No+Image';
                             
                             return (
                               <div key={item.id || index} className="order-item-detail">

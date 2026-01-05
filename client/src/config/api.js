@@ -31,3 +31,18 @@ export const generateWhatsAppUrl = (message) => {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 };
 
+// Helper function to get full image URL (prepends API_URL if image path is relative)
+export const getImageUrl = (imagePath) => {
+  if (!imagePath) return '';
+  // If it's already a full URL (http://, https://, or data:), return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) {
+    return imagePath;
+  }
+  // If API_URL is set, prepend it to the image path
+  if (API_URL) {
+    return `${API_URL}${imagePath}`;
+  }
+  // Otherwise return the path as is (for development with proxy)
+  return imagePath;
+};
+

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import { getOrganizationSchema, getWebsiteSchema } from '../utils/structuredData'
-import { API_URL } from '../config/api'
+import { API_URL, getImageUrl } from '../config/api'
 import './Home.css'
 
 const Home = () => {
@@ -176,7 +176,7 @@ const Home = () => {
           subtitle,
           subtitle2,
           description,
-          image: product.image || '/images/placeholder.jpg',
+          image: getImageUrl(product.image) || '/images/placeholder.jpg',
           features: features.slice(0, 5), // Limit to 5 features
           cta,
           productId: product.id
@@ -330,7 +330,7 @@ const Home = () => {
               {slides.length > 0 && slides[currentSlide] ? (
                 <div className="hero-image-container">
                   <img 
-                    src={slides[currentSlide].image} 
+                    src={getImageUrl(slides[currentSlide].image)} 
                     alt={slides[currentSlide].title}
                     className="hero-image"
                     onError={(e) => {
@@ -468,7 +468,7 @@ const Home = () => {
                   >
                     <div className="product-image">
                       <img 
-                        src={product.image || '/placeholder-product.jpg'} 
+                        src={getImageUrl(product.image) || '/placeholder-product.jpg'} 
                         alt={product.name}
                         onError={(e) => {
                           e.target.src = 'https://via.placeholder.com/300x300?text=Product'

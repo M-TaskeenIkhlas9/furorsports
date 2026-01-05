@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 import SEO from '../components/SEO'
 import { getProductSchema, getBreadcrumbSchema } from '../utils/structuredData'
+import { API_URL, getImageUrl } from '../config/api'
 import './ProductDetail.css'
 
 const ProductDetail = () => {
@@ -25,7 +26,7 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      const response = await fetch(`/api/products/${id}`)
+      const response = await fetch(`${API_URL}/api/products/${id}`)
       if (response.ok) {
         const data = await response.json()
         setProduct(data)
@@ -49,7 +50,7 @@ const ProductDetail = () => {
     }
 
     try {
-      const response = await fetch('/api/cart/add', {
+      const response = await fetch(`${API_URL}/api/cart/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -104,8 +105,8 @@ const ProductDetail = () => {
     : `Buy ${product.name} from Furor Sport. High-quality ${product.category || 'sports wear'} from Sialkot, Pakistan. Professional sports wear with worldwide shipping.`;
   
   const productImage = product.images && product.images.length > 0 
-    ? product.images[0].url || product.images[0]
-    : product.image || 'https://furorsport-lac-one-35.vercel.app/images/placeholder-product.jpg';
+    ? getImageUrl(product.images[0].url || product.images[0])
+    : getImageUrl(product.image) || 'https://furorsport-lac-one-35.vercel.app/images/placeholder-product.jpg';
 
   const breadcrumbItems = [
     { name: "Home", url: "https://furorsport-lac-one-35.vercel.app/" },
@@ -142,7 +143,7 @@ const ProductDetail = () => {
             {product.images && product.images.length > 0 ? (
               <div className="image-carousel">
                 <img 
-                  src={product.images[currentImageIndex] || '/placeholder-product.jpg'} 
+                  src={getImageUrl(product.images[currentImageIndex]) || '/placeholder-product.jpg'} 
                   alt={product.name}
                   className="main-product-image"
                   onError={(e) => {
@@ -180,7 +181,7 @@ const ProductDetail = () => {
             ) : (
               <div style={{ position: 'relative' }}>
                 <img 
-                  src={product.image || '/placeholder-product.jpg'} 
+                  src={getImageUrl(product.image) || '/placeholder-product.jpg'} 
                   alt={product.name}
                   onError={(e) => {
                     e.target.src = 'https://via.placeholder.com/500x500?text=Product'

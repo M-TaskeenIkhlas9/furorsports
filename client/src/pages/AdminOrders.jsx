@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { API_URL } from '../config/api';
+import { API_URL, getImageUrl } from '../config/api';
 import './AdminOrders.css';
 
 const AdminOrders = () => {
@@ -199,11 +199,7 @@ const AdminOrders = () => {
     // Format the shipping label content with images
     const itemsList = selectedOrder.items?.map((item, index) => {
       // Handle both relative and absolute image URLs
-      let imageUrl = item.image || 'https://via.placeholder.com/80?text=No+Image';
-      if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
-        // If it's a relative path, make it absolute
-        imageUrl = window.location.origin + imageUrl;
-      }
+      const imageUrl = getImageUrl(item.image) || 'https://via.placeholder.com/80?text=No+Image';
       
       return `
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; page-break-inside: avoid;">
@@ -665,7 +661,7 @@ const AdminOrders = () => {
                     {selectedOrder.items?.map((item, index) => (
                       <div key={index} className="order-item-card">
                         <img 
-                          src={item.image || 'https://via.placeholder.com/60'} 
+                          src={getImageUrl(item.image) || 'https://via.placeholder.com/60'} 
                           alt={item.name}
                           className="item-image"
                           onError={(e) => {

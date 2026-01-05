@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import { getCollectionPageSchema, getBreadcrumbSchema } from '../utils/structuredData'
-import { API_URL } from '../config/api'
+import { API_URL, getImageUrl } from '../config/api'
 import './Products.css'
 
 const Products = () => {
@@ -101,7 +101,7 @@ const Products = () => {
                 <Link to={`/product/${product.id}`}>
                   <div className="product-image">
                     <img 
-                      src={product.image || '/placeholder-product.jpg'} 
+                      src={getImageUrl(product.image) || '/placeholder-product.jpg'} 
                       alt={product.name}
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/300x300?text=Product'
