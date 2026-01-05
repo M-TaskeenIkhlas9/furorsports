@@ -35,7 +35,7 @@ const Navbar = () => {
     // Fetch cart count
     const fetchCartCount = async () => {
       try {
-        const response = await fetch(`/api/cart/${sessionId}`)
+        const response = await fetch(`${API_URL}/api/cart/${sessionId}`)
         if (response.ok) {
           const items = await response.json()
           const count = items.reduce((sum, item) => sum + item.quantity, 0)
@@ -52,7 +52,7 @@ const Navbar = () => {
     // Fetch categories
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories')
+        const response = await fetch(`${API_URL}/api/categories`)
         if (response.ok) {
           const data = await response.json()
           console.log('Categories fetched:', data) // Debug log

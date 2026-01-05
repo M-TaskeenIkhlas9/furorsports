@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import { getOrganizationSchema, getWebsiteSchema } from '../utils/structuredData'
+import { API_URL } from '../config/api'
 import './Home.css'
 
 const Home = () => {
@@ -19,7 +20,7 @@ const Home = () => {
   const fetchProducts = async () => {
     try {
       // Fetch the 8 newest products (backend handles limit and sorting)
-      const response = await fetch('/api/products?limit=8')
+      const response = await fetch(`${API_URL}/api/products?limit=8`)
       const data = await response.json()
       setProducts(data) // Backend already returns only 8 newest products
       setLoading(false)
@@ -31,7 +32,7 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const response = await fetch('/api/products/featured/hero')
+      const response = await fetch(`${API_URL}/api/products/featured/hero`)
       const data = await response.json()
       
       // Transform products into slide format

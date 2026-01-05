@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import { getCollectionPageSchema, getBreadcrumbSchema } from '../utils/structuredData'
+import { API_URL } from '../config/api'
 import './Products.css'
 
 const Products = () => {
@@ -19,7 +20,7 @@ const Products = () => {
   const fetchProducts = async () => {
     setLoading(true)
     try {
-      let url = '/api/products'
+      let url = `${API_URL}/api/products`
       const params = new URLSearchParams()
       if (category) params.append('category', category)
       if (subcategory) params.append('subcategory', subcategory)
