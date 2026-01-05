@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
-import { generateWhatsAppUrl } from '../config/api'
+import { API_URL, generateWhatsAppUrl } from '../config/api'
 import './Checkout.css'
 
 const Checkout = () => {
@@ -31,7 +31,7 @@ const Checkout = () => {
     }
 
     try {
-      const response = await fetch(`/api/cart/${sessionId}`)
+      const response = await fetch(`${API_URL}/api/cart/${sessionId}`)
       if (response.ok) {
         const data = await response.json()
         if (data.length === 0) {
@@ -140,7 +140,7 @@ const Checkout = () => {
 
     try {
       // Create WhatsApp order (pending status)
-      const response = await fetch('/api/orders/create-whatsapp', {
+      const response = await fetch(`${API_URL}/api/orders/create-whatsapp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -164,7 +164,7 @@ const Checkout = () => {
         
         // Clear cart immediately to prevent duplicate orders
         try {
-          await fetch(`/api/cart/${sessionId}`, { method: 'DELETE' }).catch(() => {})
+          await fetch(`${API_URL}/api/cart/${sessionId}`, { method: 'DELETE' }).catch(() => {})
           localStorage.removeItem('sessionId')
         } catch (cartError) {
           console.error('Error clearing cart:', cartError)
