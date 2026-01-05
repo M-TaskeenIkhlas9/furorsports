@@ -8,7 +8,7 @@
     "server": "nodemon server/index.js",
     "client": "cd client && npm run dev",
     "install-all": "npm install && cd client && npm install",
-    "build": "cd client && npm run build",
+    "build": "cd client && npm install && npm run build",
     "build-frontend": "cd client && npm install && npm run build",
     "build:prod": "npm run build && echo 'Production build complete!'",
     "start": "node server/index.js",
