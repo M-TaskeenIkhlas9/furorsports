@@ -591,6 +591,49 @@ router.get('/categories', (req, res) => {
   );
 });
 
+// Reset admin password (for initial setup - use with caution)
+router.post('/reset-password', (req, res) => {
+  const { newPassword } = req.body;
+  const db = getDb();
+  
+  if (!newPassword) {
+    return res.status(400).json({ success: false, error: 'New password is required' });
+  }
+  
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long' });
+  }
+  
+  // Update or insert admin password
+  db.get('SELECT COUNT(*) as count FROM admin', [], (err, countRow) => {
+    if (err) {
+      return res.status(500).json({ success: false, error: 'Database error' });
+    }
+    
+    if (countRow.count === 0) {
+      // Insert new password
+      db.run('INSERT INTO admin (password) VALUES (?)', [newPassword], function(err) {
+        if (err) {
+          return res.status(500).json({ success: false, error: 'Failed to set password' });
+        }
+        res.json({ success: true, message: 'Password set successfully' });
+      });
+    } else {
+      // Update existing password
+      db.run(
+        'UPDATE admin SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM admin ORDER BY id LIMIT 1)',
+        [newPassword],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ success: false, error: 'Failed to update password' });
+          }
+          res.json({ success: true, message: 'Password reset successfully' });
+        }
+      );
+    }
+  });
+});
+
 // Change admin password
 router.post('/change-password', (req, res) => {
   const { currentPassword, newPassword } = req.body;
