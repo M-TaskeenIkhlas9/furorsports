@@ -67,9 +67,13 @@ db.init().then(() => {
   app.listen(PORT, () => {
     console.log(`✓ Server is running on port ${PORT}`);
     console.log(`✓ Using MySQL database: ${process.env.DB_NAME || 'u718394065_furorsports_db'}`);
+    console.log(`✓ Database type: MySQL (NOT SQLite)`);
+    console.log(`✓ Migration completed: SQLite -> MySQL`);
   });
 }).catch(err => {
   console.error('✗ FATAL: Failed to initialize database. Server cannot start.');
+  console.error('✗ Database type: MySQL');
+  console.error('✗ This error should NOT mention SQLite. If you see SQLite errors, old code is running.');
   console.error(err);
   process.exit(1);
 });
