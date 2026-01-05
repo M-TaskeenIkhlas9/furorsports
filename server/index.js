@@ -35,12 +35,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
 
-// Initialize database
+// Initialize database (will start server after init)
 const db = require('./database/db');
-db.init().catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
 
 // API Routes (must come before static files)
 app.use('/api/products', productRoutes);
@@ -66,7 +62,15 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Start server after database initialization
+db.init().then(() => {
+  app.listen(PORT, () => {
+    console.log(`✓ Server is running on port ${PORT}`);
+    console.log(`✓ Using MySQL database: ${process.env.DB_NAME || 'u718394065_furorsports_db'}`);
+  });
+}).catch(err => {
+  console.error('✗ FATAL: Failed to initialize database. Server cannot start.');
+  console.error(err);
+  process.exit(1);
 });
 
