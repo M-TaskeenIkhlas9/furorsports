@@ -5,6 +5,12 @@ let pool;
 
 const init = async () => {
   try {
+    // Log database configuration (without password)
+    console.log('Initializing MySQL database connection...');
+    console.log('DB_HOST:', process.env.DB_HOST || 'localhost');
+    console.log('DB_USER:', process.env.DB_USER || 'u718394065_furorsports');
+    console.log('DB_NAME:', process.env.DB_NAME || 'u718394065_furorsports_db');
+    
     // Create MySQL connection pool
     pool = mysql.createPool({
       host: process.env.DB_HOST || 'localhost',
@@ -18,7 +24,7 @@ const init = async () => {
 
     // Test connection
     const connection = await pool.getConnection();
-    console.log('Connected to MySQL database');
+    console.log('✓ Connected to MySQL database successfully');
     connection.release();
 
     // Create tables
@@ -27,9 +33,16 @@ const init = async () => {
     // Seed data
     await seedData();
     
+    console.log('✓ Database initialization completed successfully');
     return Promise.resolve();
   } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error('✗ ERROR: Failed to initialize MySQL database');
+    console.error('Error details:', error.message);
+    console.error('Full error:', error);
+    console.error('\nPlease check:');
+    console.error('1. MySQL database credentials are correct');
+    console.error('2. Environment variables are set (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)');
+    console.error('3. MySQL database exists and is accessible');
     return Promise.reject(error);
   }
 };
