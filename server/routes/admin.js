@@ -8,7 +8,7 @@ const { getDb } = require('../database/db');
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../client/public/images/products');
+    const uploadPath = path.join(__dirname, '../public/images/products');
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });

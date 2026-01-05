@@ -31,6 +31,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve static files for images (both dev and production)
+// Use server/public/images for uploaded images, fallback to client/public/images for default images
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
 
 // Initialize database
