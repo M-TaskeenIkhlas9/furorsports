@@ -100,30 +100,34 @@ const init = async () => {
     
     connection.release();
 
-    // Create tables
+    // Mark database as ready IMMEDIATELY after successful connection
+    // This ensures the database is marked ready even if table creation fails
+    isDatabaseReady = true;
+    console.log('✓ Database connection confirmed - marking as ready');
+
+    // Create tables (non-blocking - won't fail if already exists)
     console.log('Creating database tables...');
     try {
       await createTables();
-      console.log('✓ Tables created successfully');
+      console.log('✓ Tables created/verified successfully');
     } catch (tableError) {
       console.error('✗ ERROR creating tables:', tableError.code, tableError.message);
-      // Continue anyway - tables might already exist
-      console.log('Continuing initialization (tables may already exist)...');
+      console.error('Table error details:', tableError);
+      // Continue anyway - tables might already exist or will be created on first use
+      console.log('Continuing (tables will be created on first use if needed)...');
     }
     
-    // Seed data
+    // Seed data (non-blocking)
     console.log('Seeding initial data...');
     try {
       await seedData();
       console.log('✓ Data seeded successfully');
     } catch (seedError) {
       console.error('✗ ERROR seeding data:', seedError.code, seedError.message);
+      console.error('Seed error details:', seedError);
       // Continue anyway - data might already be seeded
-      console.log('Continuing initialization (data may already be seeded)...');
+      console.log('Continuing (data may already be seeded)...');
     }
-    
-    // Mark database as ready (even if table creation/seeding had issues)
-    isDatabaseReady = true;
     
     console.log('✓✓✓ Database initialization completed ✓✓✓');
     console.log('Database is ready for use');
