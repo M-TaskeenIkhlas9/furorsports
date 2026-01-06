@@ -40,8 +40,20 @@ const init = async () => {
     pool = mysql.createPool(dbConfig);
 
     // Test connection
+    console.log('Attempting MySQL connection with:', {
+      host: dbConfig.host,
+      user: dbConfig.user,
+      database: dbConfig.database,
+      password_length: dbConfig.password ? dbConfig.password.length : 0
+    });
+    
     const connection = await pool.getConnection();
     console.log('✓ Connected to MySQL database successfully');
+    
+    // Test a simple query
+    const [rows] = await connection.query('SELECT DATABASE() as current_db');
+    console.log('✓ Current database:', rows[0].current_db);
+    
     connection.release();
 
     // Create tables
@@ -56,13 +68,20 @@ const init = async () => {
     console.log('✓ Database initialization completed successfully');
     return Promise.resolve();
   } catch (error) {
-    console.error('✗ ERROR: Failed to initialize MySQL database');
-    console.error('Error details:', error.message);
-    console.error('Full error:', error);
+    console.error('✗✗✗ ERROR: Failed to initialize MySQL database ✗✗✗');
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Error sqlState:', error.sqlState);
+    console.error('\n=== Connection Details Used ===');
+    console.error('Host:', process.env.DB_HOST || 'localhost');
+    console.error('User:', process.env.DB_USER || 'u718394065_furorsports');
+    console.error('Database:', process.env.DB_NAME || 'u718394065_furorsports_db');
+    console.error('Password set:', !!process.env.DB_PASSWORD || 'Using fallback');
     console.error('\nPlease check:');
-    console.error('1. MySQL database credentials are correct');
-    console.error('2. Environment variables are set (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)');
-    console.error('3. MySQL database exists and is accessible');
+    console.error('1. MySQL database exists and is accessible');
+    console.error('2. MySQL user has correct permissions');
+    console.error('3. MySQL service is running');
+    console.error('4. Database credentials are correct');
     return Promise.reject(error);
   }
 };
