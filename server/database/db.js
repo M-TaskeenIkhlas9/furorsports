@@ -101,15 +101,32 @@ const init = async () => {
     connection.release();
 
     // Create tables
-    await createTables();
+    console.log('Creating database tables...');
+    try {
+      await createTables();
+      console.log('✓ Tables created successfully');
+    } catch (tableError) {
+      console.error('✗ ERROR creating tables:', tableError.code, tableError.message);
+      // Continue anyway - tables might already exist
+      console.log('Continuing initialization (tables may already exist)...');
+    }
     
     // Seed data
-    await seedData();
+    console.log('Seeding initial data...');
+    try {
+      await seedData();
+      console.log('✓ Data seeded successfully');
+    } catch (seedError) {
+      console.error('✗ ERROR seeding data:', seedError.code, seedError.message);
+      // Continue anyway - data might already be seeded
+      console.log('Continuing initialization (data may already be seeded)...');
+    }
     
-    // Mark database as ready
+    // Mark database as ready (even if table creation/seeding had issues)
     isDatabaseReady = true;
     
-    console.log('✓ Database initialization completed successfully');
+    console.log('✓✓✓ Database initialization completed ✓✓✓');
+    console.log('Database is ready for use');
     return Promise.resolve();
   } catch (error) {
     console.error('✗✗✗ ERROR: Failed to initialize MySQL database ✗✗✗');

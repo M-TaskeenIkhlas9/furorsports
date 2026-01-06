@@ -200,15 +200,19 @@ app.listen(PORT, () => {
     console.log(`✓ Using MySQL database: ${process.env.DB_NAME || 'u718394065_furorsports_db'}`);
     console.log(`✓ Database type: MySQL (NOT SQLite)`);
     console.log(`✓ Migration completed: SQLite -> MySQL`);
+    console.log(`✓ Database is ready - isDatabaseReady: ${require('./database/db').isReady()}`);
   }).catch(err => {
     console.error('✗✗✗ ERROR: Failed to initialize database ✗✗✗');
     console.error('✗ Database type: MySQL (NOT SQLite)');
     console.error('✗ If you see SQLite errors, old code is running.');
-    console.error('✗ Error details:', err.message);
-    console.error('✗ Full error:', err);
+    console.error('✗ Error code:', err.code);
+    console.error('✗ Error message:', err.message);
+    console.error('✗ Error sqlState:', err.sqlState);
+    console.error('✗ Full error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     console.error('✗ Server is running but database operations will fail');
     console.error('✗ Please check MySQL connection and restart deployment');
     console.error('✗ Check /api/health endpoint for status');
+    console.error('✗ Check /api/mysql-test endpoint to verify connection');
   });
 });
 
