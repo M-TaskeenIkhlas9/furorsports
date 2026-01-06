@@ -5,10 +5,8 @@ const { pool, isReady } = require('../database/db');
 // Middleware to check if database is ready
 const checkDatabase = (req, res, next) => {
   if (!pool || !isReady()) {
-    return res.status(503).json({ 
-      error: 'Database is not ready yet. Please wait a moment and try again.',
-      status: 'database_initializing'
-    });
+    // Return empty array instead of error object so frontend doesn't crash
+    return res.json([]);
   }
   next();
 };
@@ -56,10 +54,8 @@ router.get('/', async (req, res) => {
     res.json(rows || []);
   } catch (err) {
     console.error('Error in GET /api/products:', err);
-    res.status(500).json({ 
-      error: err.message,
-      details: 'Failed to fetch products. Please check database connection.'
-    });
+    // Return empty array so frontend doesn't crash
+    res.json([]);
   }
 });
 
@@ -160,12 +156,14 @@ router.get('/featured/hero', async (req, res) => {
         ORDER BY created_at DESC 
         LIMIT 3
       `);
-      res.json(newRows);
+      res.json(newRows || []);
     } else {
-      res.json(featuredRows);
+      res.json(featuredRows || []);
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in GET /api/products/featured/hero:', err);
+    // Return empty array so frontend doesn't crash
+    res.json([]);
   }
 });
 

@@ -5,10 +5,8 @@ const { pool, isReady } = require('../database/db');
 // Middleware to check if database is ready
 const checkDatabase = (req, res, next) => {
   if (!pool || !isReady()) {
-    return res.status(503).json({ 
-      error: 'Database is not ready yet. Please wait a moment and try again.',
-      status: 'database_initializing'
-    });
+    // Return empty array instead of error object so frontend doesn't crash
+    return res.json([]);
   }
   next();
 };
@@ -61,9 +59,10 @@ router.get('/', async (req, res) => {
 router.get('/names', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT id, name FROM categories ORDER BY name');
-    res.json(rows);
+    res.json(rows || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in GET /api/categories/names:', err);
+    res.json([]);
   }
 });
 
@@ -75,9 +74,10 @@ router.get('/:categoryId/subcategories', async (req, res) => {
       'SELECT id, name FROM subcategories WHERE category_id = ? ORDER BY name',
       [categoryId]
     );
-    res.json(rows);
+    res.json(rows || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in GET /api/categories/names:', err);
+    res.json([]);
   }
 });
 
