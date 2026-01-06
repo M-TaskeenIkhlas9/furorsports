@@ -125,21 +125,38 @@ app.get('/api/env-test', (req, res) => {
 });
 
 // Manual database initialization endpoint (for testing)
+// This endpoint MUST be before any routes that might interfere
 app.get('/api/db-init', async (req, res) => {
   try {
-    const db = require('./database/db');
-    await db.init();
+    console.log('=== Manual DB initialization triggered via /api/db-init ===');
+    const { init, isReady } = require('./database/db');
+    
+    // Check if already initialized
+    if (isReady()) {
+      return res.json({ 
+        success: true, 
+        message: 'Database already initialized and ready',
+        isReady: true
+      });
+    }
+    
+    // Initialize database
+    await init();
+    
     res.json({ 
       success: true, 
       message: 'Database initialized successfully',
-      isReady: require('./database/db').isReady()
+      isReady: isReady()
     });
   } catch (error) {
-    res.json({
+    console.error('Error in /api/db-init:', error);
+    res.status(500).json({
       success: false,
       error: error.message,
       code: error.code,
-      isReady: require('./database/db').isReady()
+      sqlState: error.sqlState,
+      isReady: require('./database/db').isReady(),
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
