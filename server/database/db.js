@@ -29,10 +29,14 @@ const init = async () => {
       host: 'localhost',
       user: 'u718394065_furorsports',
       password: 'Iam@745678',
-      database: 'u718394065_furorsports_db'
+      database: 'u718394065_furorsports_db',
+      // Try socket path if localhost doesn't work (common on shared hosting)
+      // Common socket paths on Hostinger:
+      socketPath: null, // Will try TCP first, then socket if TCP fails
     };
     
-    const dbConfig = {
+    // Try TCP connection first (localhost)
+    let dbConfig = {
       host: process.env.DB_HOST || HOSTINGER_DB_CONFIG.host,
       user: process.env.DB_USER || HOSTINGER_DB_CONFIG.user,
       password: process.env.DB_PASSWORD || HOSTINGER_DB_CONFIG.password,
@@ -40,11 +44,14 @@ const init = async () => {
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
-      // Add additional connection options for Hostinger MySQL
       connectTimeout: 10000,
       acquireTimeout: 10000,
       timeout: 10000
     };
+    
+    // On Hostinger, try socket connection if TCP fails
+    // Common socket paths: /var/run/mysqld/mysqld.sock or /tmp/mysql.sock
+    // But we'll try TCP first, then catch error and try socket
     
     console.log('=== USING DATABASE CONFIG ===');
     console.log('Host:', dbConfig.host);

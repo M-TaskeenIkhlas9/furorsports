@@ -42,6 +42,65 @@ app.use('/images', express.static(path.join(__dirname, '../client/public/images'
 const db = require('./database/db');
 const { pool, isReady } = require('./database/db');
 
+// MySQL connection test endpoint (to see actual MySQL error)
+app.get('/api/mysql-test', async (req, res) => {
+  const mysql = require('mysql2/promise');
+  const testConfig = {
+    host: 'localhost',
+    user: 'u718394065_furorsports',
+    password: 'Iam@745678',
+    database: 'u718394065_furorsports_db',
+    connectTimeout: 5000
+  };
+  
+  try {
+    // Try TCP
+    const connection = await mysql.createConnection(testConfig);
+    await connection.query('SELECT 1');
+    await connection.end();
+    res.json({ success: true, method: 'TCP', message: 'Connection successful via TCP' });
+  } catch (tcpError) {
+    // Try socket
+    const socketPaths = [
+      '/var/run/mysqld/mysqld.sock',
+      '/tmp/mysql.sock',
+      '/var/lib/mysql/mysql.sock'
+    ];
+    
+    let socketWorked = false;
+    for (const socketPath of socketPaths) {
+      try {
+        const socketConfig = {
+          socketPath: socketPath,
+          user: testConfig.user,
+          password: testConfig.password,
+          database: testConfig.database
+        };
+        const conn = await mysql.createConnection(socketConfig);
+        await conn.query('SELECT 1');
+        await conn.end();
+        res.json({ success: true, method: 'SOCKET', socket: socketPath, message: 'Connection successful via socket' });
+        socketWorked = true;
+        break;
+      } catch (socketError) {
+        // Try next socket
+      }
+    }
+    
+    if (!socketWorked) {
+      res.json({
+        success: false,
+        tcp_error: {
+          code: tcpError.code,
+          message: tcpError.message,
+          sqlState: tcpError.sqlState
+        },
+        message: 'Both TCP and socket connections failed'
+      });
+    }
+  }
+});
+
 // Environment test endpoint (to verify env vars reach the process)
 // Using /api/env-test to avoid routing conflicts with sitemap
 app.get('/api/env-test', (req, res) => {
