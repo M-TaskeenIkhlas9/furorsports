@@ -9,12 +9,15 @@ const init = async () => {
     // Log database configuration (without password)
     console.log('Initializing MySQL database connection...');
     console.log('=== ENVIRONMENT VARIABLES DEBUG ===');
-    console.log('All process.env keys:', Object.keys(process.env).filter(k => k.includes('DB_') || k.includes('NODE_')).join(', '));
+    // Filter for custom DB_* variables only (as per Kodee's suggestion)
+    const customDbKeys = Object.keys(process.env).filter(k => k.startsWith('DB_') || k === 'NODE_ENV' || k === 'PORT');
+    console.log('Custom DB_* and NODE keys found:', customDbKeys.length > 0 ? customDbKeys.join(', ') : 'NONE');
     console.log('DB_HOST:', process.env.DB_HOST || 'localhost', '(env var exists:', !!process.env.DB_HOST + ')');
     console.log('DB_USER:', process.env.DB_USER || 'u718394065_furorsports', '(env var exists:', !!process.env.DB_USER + ')');
     console.log('DB_NAME:', process.env.DB_NAME || 'u718394065_furorsports_db', '(env var exists:', !!process.env.DB_NAME + ')');
     console.log('DB_PASSWORD exists:', !!process.env.DB_PASSWORD);
     console.log('NODE_ENV:', process.env.NODE_ENV, '(env var exists:', !!process.env.NODE_ENV + ')');
+    console.log('PORT:', process.env.PORT || '5000', '(env var exists:', !!process.env.PORT + ')');
     console.log('===================================');
     
     // For Hostinger: Hardcode database credentials since Hostinger UI env vars aren't being passed

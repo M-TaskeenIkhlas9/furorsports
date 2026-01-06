@@ -45,6 +45,9 @@ const { pool, isReady } = require('./database/db');
 // Environment test endpoint (to verify env vars reach the process)
 // Using /api/env-test to avoid routing conflicts with sitemap
 app.get('/api/env-test', (req, res) => {
+  // Filter for custom DB_* variables only (as per Kodee's suggestion)
+  const customDbKeys = Object.keys(process.env).filter(k => k.startsWith('DB_') || k === 'NODE_ENV' || k === 'PORT' || k === 'CLIENT_URL');
+  
   res.json({
     NODE_ENV: process.env.NODE_ENV || null,
     PORT: process.env.PORT || null,
@@ -53,7 +56,11 @@ app.get('/api/env-test', (req, res) => {
     DB_USER: process.env.DB_USER || null,
     DB_PASSWORD: process.env.DB_PASSWORD ? '***SET***' : null,
     CLIENT_URL: process.env.CLIENT_URL || null,
-    all_env_keys: Object.keys(process.env).filter(k => k.includes('DB_') || k.includes('NODE_') || k.includes('CLIENT_') || k === 'PORT'),
+    // Custom keys only (filtered as Kodee suggested)
+    custom_keys_found: customDbKeys,
+    custom_keys_count: customDbKeys.length,
+    // All env keys (including Hostinger internal ones)
+    all_env_keys: Object.keys(process.env).filter(k => k.includes('DB_') || k.includes('NODE_') || k.includes('CLIENT_') || k === 'PORT' || k.startsWith('LSNODE_')),
     total_env_vars: Object.keys(process.env).length
   });
 });
