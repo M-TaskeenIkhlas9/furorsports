@@ -19,6 +19,7 @@ const init = async () => {
     
     // For Hostinger: Use environment variables if available, otherwise use hardcoded defaults
     // This ensures the app works even if Hostinger env vars aren't being read correctly
+    // NOTE: Hostinger is NOT passing env vars, so we MUST use fallback values
     const dbConfig = {
       host: process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'u718394065_furorsports',
@@ -26,15 +27,21 @@ const init = async () => {
       database: process.env.DB_NAME || 'u718394065_furorsports_db',
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0
+      queueLimit: 0,
+      // Add additional connection options for Hostinger MySQL
+      connectTimeout: 10000,
+      acquireTimeout: 10000,
+      timeout: 10000
     };
     
-    console.log('Using database config:', {
-      host: dbConfig.host,
-      user: dbConfig.user,
-      database: dbConfig.database,
-      password_set: !!dbConfig.password
-    });
+    console.log('=== USING DATABASE CONFIG ===');
+    console.log('Host:', dbConfig.host);
+    console.log('User:', dbConfig.user);
+    console.log('Database:', dbConfig.database);
+    console.log('Password set:', !!dbConfig.password, '(length:', dbConfig.password ? dbConfig.password.length : 0, ')');
+    console.log('Using env vars:', !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME));
+    console.log('Using fallback values:', !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) ? 'NO' : 'YES');
+    console.log('================================');
     
     // Create MySQL connection pool
     pool = mysql.createPool(dbConfig);
