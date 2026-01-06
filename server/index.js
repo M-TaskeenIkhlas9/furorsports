@@ -124,39 +124,68 @@ app.get('/api/env-test', (req, res) => {
   });
 });
 
-// Manual database initialization endpoint (for testing)
-// This endpoint MUST be before any routes that might interfere
-app.get('/api/db-init', async (req, res) => {
+// Database health endpoint (shows initialization steps and errors) - Kodee's suggestion
+app.get('/api/db-health', async (req, res) => {
+  const steps = [];
+  const mysql = require('mysql2/promise');
+  
   try {
-    console.log('=== Manual DB initialization triggered via /api/db-init ===');
-    const { init, isReady } = require('./database/db');
+    steps.push('=== Starting database initialization ===');
     
-    // Check if already initialized
-    if (isReady()) {
-      return res.json({ 
-        success: true, 
-        message: 'Database already initialized and ready',
-        isReady: true
-      });
-    }
+    // Hostinger MySQL TCP connection (not socket!)
+    // Common Hostinger MySQL hosts: localhost, mysql.hostinger.com, or database host from hPanel
+    const dbConfig = {
+      host: 'localhost', // Try localhost first (most common on Hostinger)
+      port: 3306,
+      user: 'u718394065_furorsports',
+      password: 'Iam@745678',
+      database: 'u718394065_furorsports_db',
+      connectTimeout: 10000
+    };
     
-    // Initialize database
-    await init();
+    steps.push('=== STEP 1: Creating MySQL connection pool ===');
+    steps.push(`Using TCP connection - host: ${dbConfig.host}, port: ${dbConfig.port}`);
+    
+    const pool = mysql.createPool(dbConfig);
+    steps.push('✓ Connection pool created');
+
+    steps.push('=== STEP 2: Getting connection from pool ===');
+    const conn = await pool.getConnection();
+    steps.push('✓ Connection obtained');
+
+    steps.push('=== STEP 3: Testing database query ===');
+    const [rows] = await conn.query('SELECT DATABASE() as current_db, NOW() as current_time');
+    steps.push(`✓ Query successful - Database: ${rows[0].current_db}, Time: ${rows[0].current_time}`);
+    
+    conn.release();
+    await pool.end();
+    
+    steps.push('=== STEP 4: Connection test successful ===');
     
     res.json({ 
-      success: true, 
-      message: 'Database initialized successfully',
-      isReady: isReady()
+      ok: true, 
+      steps,
+      message: 'Database connection works via TCP',
+      config: {
+        host: dbConfig.host,
+        port: dbConfig.port,
+        database: dbConfig.database,
+        user: dbConfig.user
+      }
     });
-  } catch (error) {
-    console.error('Error in /api/db-init:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      code: error.code,
-      sqlState: error.sqlState,
-      isReady: require('./database/db').isReady(),
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+  } catch (err) {
+    steps.push(`ERROR: ${err.code} ${err.message}`);
+    steps.push(`Error details: ${JSON.stringify(err)}`);
+    
+    res.status(500).json({ 
+      ok: false, 
+      steps, 
+      error: { 
+        code: err.code, 
+        message: err.message,
+        sqlState: err.sqlState
+      },
+      suggestion: 'If connection fails, check MySQL host in Hostinger hPanel → Databases → MySQL'
     });
   }
 });

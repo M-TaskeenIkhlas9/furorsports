@@ -25,23 +25,25 @@ const init = async () => {
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Hardcoded Hostinger MySQL credentials (used when env vars not available)
-    // IMPORTANT: Hostinger requires socket connection, not TCP
+    // IMPORTANT: Hostinger shared hosting uses TCP, not socket! (per Kodee)
+    // Use localhost:3306 or the MySQL host from hPanel → Databases → MySQL
     const HOSTINGER_DB_CONFIG = {
-      socketPath: '/tmp/mysql.sock', // Hostinger uses socket connection
+      host: 'localhost', // TCP connection - most common on Hostinger
+      port: 3306,
       user: 'u718394065_furorsports',
       password: 'Iam@745678',
       database: 'u718394065_furorsports_db'
     };
     
-    // Use socket connection for Hostinger (proven to work via /api/mysql-test)
-    // If env vars are set, use them; otherwise use hardcoded socket config
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Use TCP connection for Hostinger (per Kodee's recommendation)
+    // If env vars are set, use them; otherwise use hardcoded TCP config
     let dbConfig;
     
     if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
-      // Use environment variables (for local development with TCP)
+      // Use environment variables (if they're passed)
       dbConfig = {
         host: process.env.DB_HOST,
+        port: process.env.DB_PORT || 3306,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
@@ -53,9 +55,10 @@ const init = async () => {
         timeout: 10000
       };
     } else {
-      // Use socket connection for Hostinger (production)
+      // Use TCP connection for Hostinger (production)
       dbConfig = {
-        socketPath: HOSTINGER_DB_CONFIG.socketPath,
+        host: HOSTINGER_DB_CONFIG.host,
+        port: HOSTINGER_DB_CONFIG.port,
         user: HOSTINGER_DB_CONFIG.user,
         password: HOSTINGER_DB_CONFIG.password,
         database: HOSTINGER_DB_CONFIG.database,
@@ -69,18 +72,14 @@ const init = async () => {
     }
     
     console.log('=== USING DATABASE CONFIG ===');
-    if (dbConfig.socketPath) {
-      console.log('Connection method: SOCKET');
-      console.log('Socket path:', dbConfig.socketPath);
-    } else {
-      console.log('Connection method: TCP');
-      console.log('Host:', dbConfig.host);
-    }
+    console.log('Connection method: TCP (per Kodee recommendation)');
+    console.log('Host:', dbConfig.host);
+    console.log('Port:', dbConfig.port || 3306);
     console.log('User:', dbConfig.user);
     console.log('Database:', dbConfig.database);
     console.log('Password set:', !!dbConfig.password, '(length:', dbConfig.password ? dbConfig.password.length : 0, ')');
     console.log('Using env vars:', !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME));
-    console.log('Using socket (Hostinger):', !!dbConfig.socketPath);
+    console.log('Using hardcoded TCP config:', !(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME));
     console.log('================================');
     
     // Create MySQL connection pool (using socket for Hostinger, TCP for local dev)
@@ -93,12 +92,7 @@ const init = async () => {
     try {
       connection = await pool.getConnection();
       console.log('✓ Connection obtained from pool');
-      
-      if (dbConfig.socketPath) {
-        console.log('✓ Connected to MySQL database successfully via SOCKET:', dbConfig.socketPath);
-      } else {
-        console.log('✓ Connected to MySQL database successfully via TCP:', dbConfig.host);
-      }
+      console.log('✓ Connected to MySQL database successfully via TCP:', `${dbConfig.host}:${dbConfig.port || 3306}`);
       
       // Test a simple query
       console.log('=== STEP 3: Testing database query ===');
