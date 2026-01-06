@@ -17,14 +17,23 @@ const init = async () => {
     console.log('NODE_ENV:', process.env.NODE_ENV, '(env var exists:', !!process.env.NODE_ENV + ')');
     console.log('===================================');
     
-    // For Hostinger: Use environment variables if available, otherwise use hardcoded defaults
-    // This ensures the app works even if Hostinger env vars aren't being read correctly
-    // NOTE: Hostinger is NOT passing env vars, so we MUST use fallback values
+    // For Hostinger: Hardcode database credentials since Hostinger UI env vars aren't being passed
+    // Environment variables are checked first (for local development), then fallback to hardcoded Hostinger values
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Hardcoded Hostinger MySQL credentials (used when env vars not available)
+    const HOSTINGER_DB_CONFIG = {
+      host: 'localhost',
+      user: 'u718394065_furorsports',
+      password: 'Iam@745678',
+      database: 'u718394065_furorsports_db'
+    };
+    
     const dbConfig = {
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'u718394065_furorsports',
-      password: process.env.DB_PASSWORD || 'Iam@745678',
-      database: process.env.DB_NAME || 'u718394065_furorsports_db',
+      host: process.env.DB_HOST || HOSTINGER_DB_CONFIG.host,
+      user: process.env.DB_USER || HOSTINGER_DB_CONFIG.user,
+      password: process.env.DB_PASSWORD || HOSTINGER_DB_CONFIG.password,
+      database: process.env.DB_NAME || HOSTINGER_DB_CONFIG.database,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,

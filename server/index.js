@@ -18,9 +18,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration
+// Hardcoded Hostinger frontend URL (since env vars aren't being passed)
+const HOSTINGER_CLIENT_URL = 'https://aliceblue-rook-541622.hostingersite.com';
+
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.CLIENT_URL || '*'
+    ? (process.env.CLIENT_URL || HOSTINGER_CLIENT_URL)
     : '*',
   credentials: true
 };
