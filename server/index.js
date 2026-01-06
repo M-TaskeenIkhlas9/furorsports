@@ -134,12 +134,13 @@ app.get('/api/db-health', async (req, res) => {
     
     // Hostinger MySQL TCP connection (not socket!)
     // Use mysql.hostinger.com as the MySQL host (per Kodee's recommendation)
+    // Try environment variables first, then fallback to hardcoded values
     const dbConfig = {
-      host: 'mysql.hostinger.com', // Standard Hostinger MySQL host
-      port: 3306,
-      user: 'u718394065_furorsports',
-      password: 'Iam@745678',
-      database: 'u718394065_furorsports_db',
+      host: process.env.DB_HOST || 'mysql.hostinger.com', // Standard Hostinger MySQL host
+      port: parseInt(process.env.DB_PORT) || 3306,
+      user: process.env.DB_USER || 'u718394065_furorsports',
+      password: process.env.DB_PASSWORD || 'Iam@745678',
+      database: process.env.DB_NAME || 'u718394065_furorsports_db',
       connectTimeout: 10000
     };
     
