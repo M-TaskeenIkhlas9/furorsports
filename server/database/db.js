@@ -17,8 +17,9 @@ const init = async () => {
     console.log('NODE_ENV:', process.env.NODE_ENV, '(env var exists:', !!process.env.NODE_ENV + ')');
     console.log('===================================');
     
-    // Create MySQL connection pool
-    pool = mysql.createPool({
+    // For Hostinger: Use environment variables if available, otherwise use hardcoded defaults
+    // This ensures the app works even if Hostinger env vars aren't being read correctly
+    const dbConfig = {
       host: process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'u718394065_furorsports',
       password: process.env.DB_PASSWORD || 'Iam@745678',
@@ -26,7 +27,17 @@ const init = async () => {
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
+    };
+    
+    console.log('Using database config:', {
+      host: dbConfig.host,
+      user: dbConfig.user,
+      database: dbConfig.database,
+      password_set: !!dbConfig.password
     });
+    
+    // Create MySQL connection pool
+    pool = mysql.createPool(dbConfig);
 
     // Test connection
     const connection = await pool.getConnection();
