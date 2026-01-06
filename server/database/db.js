@@ -26,9 +26,9 @@ const init = async () => {
     
     // Hardcoded Hostinger MySQL credentials (used when env vars not available)
     // IMPORTANT: Hostinger shared hosting uses TCP, not socket! (per Kodee)
-    // Use localhost:3306 or the MySQL host from hPanel → Databases → MySQL
+    // Use 127.0.0.1 (IPv4) instead of localhost to avoid IPv6 (::1) connection issues
     const HOSTINGER_DB_CONFIG = {
-      host: 'localhost', // TCP connection - most common on Hostinger
+      host: '127.0.0.1', // Use IPv4 localhost to avoid ::1 (IPv6) access denied errors
       port: 3306,
       user: 'u718394065_furorsports',
       password: 'Iam@745678',

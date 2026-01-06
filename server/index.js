@@ -133,9 +133,9 @@ app.get('/api/db-health', async (req, res) => {
     steps.push('=== Starting database initialization ===');
     
     // Hostinger MySQL TCP connection (not socket!)
-    // Common Hostinger MySQL hosts: localhost, mysql.hostinger.com, or database host from hPanel
+    // Use 127.0.0.1 (IPv4) instead of localhost to avoid IPv6 (::1) access denied errors
     const dbConfig = {
-      host: 'localhost', // Try localhost first (most common on Hostinger)
+      host: '127.0.0.1', // Use IPv4 to avoid ::1 connection issues
       port: 3306,
       user: 'u718394065_furorsports',
       password: 'Iam@745678',
