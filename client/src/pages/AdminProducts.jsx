@@ -52,12 +52,14 @@ const AdminProducts = () => {
       }
       const data = await response.json();
       if (isMountedRef.current) {
-        setProducts(data);
+        // Ensure data is an array
+        setProducts(Array.isArray(data) ? data : []);
         setLoading(false);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
       if (isMountedRef.current) {
+        setProducts([]);
         setLoading(false);
       }
     }
@@ -71,12 +73,22 @@ const AdminProducts = () => {
       }
       const data = await response.json();
       
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        console.error('Categories response is not an array:', data);
+        if (isMountedRef.current) {
+          setCategories([]);
+          setSubcategories({});
+        }
+        return;
+      }
+      
       // Transform data for easier use
       const categoriesList = data.map(cat => cat.name);
       const subcategoriesMap = {};
       
       data.forEach(cat => {
-        if (cat.subcategories && cat.subcategories.length > 0) {
+        if (cat.subcategories && Array.isArray(cat.subcategories) && cat.subcategories.length > 0) {
           subcategoriesMap[cat.name] = cat.subcategories.map(sub => sub.name);
         }
       });
@@ -87,6 +99,10 @@ const AdminProducts = () => {
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
+      if (isMountedRef.current) {
+        setCategories([]);
+        setSubcategories({});
+      }
     }
   }, []);
 

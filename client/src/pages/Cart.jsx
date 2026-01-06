@@ -24,11 +24,15 @@ const Cart = () => {
       const response = await fetch(`${API_URL}/api/cart/${sessionId}`)
       if (response.ok) {
         const data = await response.json()
-        setCartItems(data)
+        // Ensure data is an array
+        setCartItems(Array.isArray(data) ? data : [])
+      } else {
+        setCartItems([])
       }
       setLoading(false)
     } catch (error) {
       console.error('Error fetching cart:', error)
+      setCartItems([])
       setLoading(false)
     }
   }

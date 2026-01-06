@@ -22,10 +22,12 @@ const Home = () => {
       // Fetch the 8 newest products (backend handles limit and sorting)
       const response = await fetch(`${API_URL}/api/products?limit=8`)
       const data = await response.json()
-      setProducts(data) // Backend already returns only 8 newest products
+      // Ensure data is an array
+      setProducts(Array.isArray(data) ? data : [])
       setLoading(false)
     } catch (error) {
       console.error('Error fetching products:', error)
+      setProducts([]) // Set empty array on error
       setLoading(false)
     }
   }
@@ -34,6 +36,13 @@ const Home = () => {
     try {
       const response = await fetch(`${API_URL}/api/products/featured/hero`)
       const data = await response.json()
+      
+      // Ensure data is an array before mapping
+      if (!Array.isArray(data)) {
+        console.error('Featured products response is not an array:', data)
+        setHeroSlides([])
+        return
+      }
       
       // Transform products into slide format
       const transformedSlides = data.map(product => {

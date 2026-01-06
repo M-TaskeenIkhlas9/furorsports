@@ -29,10 +29,12 @@ const Products = () => {
 
       const response = await fetch(url)
       const data = await response.json()
-      setProducts(data)
+      // Ensure data is an array
+      setProducts(Array.isArray(data) ? data : [])
       setLoading(false)
     } catch (error) {
       console.error('Error fetching products:', error)
+      setProducts([]) // Set empty array on error
       setLoading(false)
     }
   }

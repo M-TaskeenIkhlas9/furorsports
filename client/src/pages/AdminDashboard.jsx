@@ -76,10 +76,11 @@ const AdminDashboard = () => {
     try {
       const response = await fetch(`${API_URL}/api/admin/orders`);
       const data = await response.json();
-      // Get last 10 orders
-      setRecentOrders(data.slice(0, 10));
+      // Ensure data is an array before slicing
+      setRecentOrders(Array.isArray(data) ? data.slice(0, 10) : []);
     } catch (error) {
       console.error('Error fetching recent orders:', error);
+      setRecentOrders([]);
     }
   };
 
@@ -87,9 +88,11 @@ const AdminDashboard = () => {
     try {
       const response = await fetch(`${API_URL}/api/admin/notifications`);
       const data = await response.json();
-      setNotifications(data);
+      // Ensure data is an array
+      setNotifications(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      setNotifications([]);
     }
   };
 
@@ -97,9 +100,10 @@ const AdminDashboard = () => {
     try {
       const response = await fetch(`${API_URL}/api/admin/notifications/unread-count`);
       const data = await response.json();
-      setUnreadCount(data.count);
+      setUnreadCount(data.count || 0);
     } catch (error) {
       console.error('Error fetching unread count:', error);
+      setUnreadCount(0);
     }
   };
 

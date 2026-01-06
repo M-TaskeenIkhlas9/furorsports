@@ -30,10 +30,12 @@ const AdminCategories = () => {
         throw new Error('Failed to fetch categories');
       }
       const data = await response.json();
-      setCategories(data);
+      // Ensure data is an array
+      setCategories(Array.isArray(data) ? data : []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
       setLoading(false);
     }
   };
