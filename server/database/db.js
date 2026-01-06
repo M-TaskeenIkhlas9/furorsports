@@ -43,7 +43,7 @@ const init = async () => {
       // Use environment variables (if they're passed)
       dbConfig = {
         host: process.env.DB_HOST,
-        port: process.env.DB_PORT || 3306,
+        port: parseInt(process.env.DB_PORT) || 3306,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
@@ -52,7 +52,8 @@ const init = async () => {
         queueLimit: 0,
         connectTimeout: 10000,
         acquireTimeout: 10000,
-        timeout: 10000
+        timeout: 10000,
+        family: 4 // Force IPv4 to avoid ::1 (IPv6) access denied errors
       };
     } else {
       // Use TCP connection for Hostinger (production)
@@ -67,7 +68,8 @@ const init = async () => {
         queueLimit: 0,
         connectTimeout: 10000,
         acquireTimeout: 10000,
-        timeout: 10000
+        timeout: 10000,
+        family: 4 // Force IPv4 to avoid ::1 (IPv6) access denied errors
       };
     }
     

@@ -134,14 +134,16 @@ app.get('/api/db-health', async (req, res) => {
     
     // Hostinger MySQL TCP connection (not socket!)
     // Use srv2045.hstgr.io as the MySQL host (from Remote MySQL page)
-    // Try environment variables first, then fallback to hardcoded values
+    // Force IPv4 connection to avoid ::1 (IPv6) access denied errors
     const dbConfig = {
       host: process.env.DB_HOST || 'srv2045.hstgr.io', // MySQL server hostname from Hostinger
       port: parseInt(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER || 'u718394065_furorsports',
       password: process.env.DB_PASSWORD || 'Iam@745678',
       database: process.env.DB_NAME || 'u718394065_furorsports_db',
-      connectTimeout: 10000
+      connectTimeout: 10000,
+      // Force IPv4 to avoid IPv6 connection issues
+      family: 4 // Use IPv4 only
     };
     
     steps.push('=== STEP 1: Creating MySQL connection pool ===');
