@@ -3,6 +3,18 @@ const router = express.Router();
 const { pool } = require('../database/db');
 const { sendAdminOrderNotification } = require('../utils/emailService');
 
+// Middleware to check if database is ready
+const checkDatabase = (req, res, next) => {
+  if (!pool) {
+    return res.status(503).json({ 
+      error: 'Database is not ready yet. Please wait a moment and try again.' 
+    });
+  }
+  next();
+};
+
+router.use(checkDatabase);
+
 // Generate order number
 const generateOrderNumber = () => {
   return 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();

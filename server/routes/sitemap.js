@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../database/db');
 
+// Middleware to check if database is ready
+const checkDatabase = (req, res, next) => {
+  if (!pool) {
+    // For sitemap, return basic sitemap if DB not ready
+    return res.status(503).set('Content-Type', 'application/xml').send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+  }
+  next();
+};
+
+router.use(checkDatabase);
+
 // Generate sitemap.xml
 router.get('/sitemap.xml', async (req, res) => {
   try {
