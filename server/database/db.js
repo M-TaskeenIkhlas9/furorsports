@@ -69,27 +69,30 @@ const init = async () => {
     }
     
     console.log('=== USING DATABASE CONFIG ===');
-    console.log('Host:', dbConfig.host);
+    if (dbConfig.socketPath) {
+      console.log('Connection method: SOCKET');
+      console.log('Socket path:', dbConfig.socketPath);
+    } else {
+      console.log('Connection method: TCP');
+      console.log('Host:', dbConfig.host);
+    }
     console.log('User:', dbConfig.user);
     console.log('Database:', dbConfig.database);
     console.log('Password set:', !!dbConfig.password, '(length:', dbConfig.password ? dbConfig.password.length : 0, ')');
     console.log('Using env vars:', !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME));
-    console.log('Using fallback values:', !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) ? 'NO' : 'YES');
+    console.log('Using socket (Hostinger):', !!dbConfig.socketPath);
     console.log('================================');
     
-    // Create MySQL connection pool
+    // Create MySQL connection pool (using socket for Hostinger, TCP for local dev)
+    console.log('Attempting MySQL connection...');
     pool = mysql.createPool(dbConfig);
 
-    // Test connection
-    console.log('Attempting MySQL connection with:', {
-      host: dbConfig.host,
-      user: dbConfig.user,
-      database: dbConfig.database,
-      password_length: dbConfig.password ? dbConfig.password.length : 0
-    });
-    
     const connection = await pool.getConnection();
-    console.log('✓ Connected to MySQL database successfully');
+    if (dbConfig.socketPath) {
+      console.log('✓ Connected to MySQL database successfully via SOCKET:', dbConfig.socketPath);
+    } else {
+      console.log('✓ Connected to MySQL database successfully via TCP:', dbConfig.host);
+    }
     
     // Test a simple query
     const [rows] = await connection.query('SELECT DATABASE() as current_db');
