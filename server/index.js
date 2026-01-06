@@ -133,10 +133,10 @@ app.get('/api/db-health', async (req, res) => {
     steps.push('=== Starting database initialization ===');
     
     // Hostinger MySQL TCP connection (not socket!)
-    // Use mysql.hostinger.com as the MySQL host (per Kodee's recommendation)
+    // Use srv2045.hstgr.io as the MySQL host (from Remote MySQL page)
     // Try environment variables first, then fallback to hardcoded values
     const dbConfig = {
-      host: process.env.DB_HOST || 'mysql.hostinger.com', // Standard Hostinger MySQL host
+      host: process.env.DB_HOST || 'srv2045.hstgr.io', // MySQL server hostname from Hostinger
       port: parseInt(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER || 'u718394065_furorsports',
       password: process.env.DB_PASSWORD || 'Iam@745678',

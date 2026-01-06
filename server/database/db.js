@@ -26,9 +26,9 @@ const init = async () => {
     
     // Hardcoded Hostinger MySQL credentials (used when env vars not available)
     // IMPORTANT: Hostinger shared hosting uses TCP, not socket! (per Kodee)
-    // Use mysql.hostinger.com as the MySQL host (per Kodee's recommendation)
+    // Use the MySQL server hostname from Remote MySQL page: srv2045.hstgr.io
     const HOSTINGER_DB_CONFIG = {
-      host: 'mysql.hostinger.com', // Standard Hostinger MySQL host (per Kodee)
+      host: 'srv2045.hstgr.io', // MySQL server hostname from Hostinger Remote MySQL page
       port: 3306,
       user: 'u718394065_furorsports',
       password: 'Iam@745678',
