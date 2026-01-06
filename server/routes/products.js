@@ -53,9 +53,13 @@ router.get('/', async (req, res) => {
     }
     
     const [rows] = await pool.query(query, params);
-    res.json(rows);
+    res.json(rows || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in GET /api/products:', err);
+    res.status(500).json({ 
+      error: err.message,
+      details: 'Failed to fetch products. Please check database connection.'
+    });
   }
 });
 

@@ -51,7 +51,11 @@ router.get('/', async (req, res) => {
     
     res.json(Object.values(categoriesMap));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in GET /api/categories:', err);
+    res.status(500).json({ 
+      error: err.message,
+      details: 'Failed to fetch categories. Please check database connection.'
+    });
   }
 });
 
