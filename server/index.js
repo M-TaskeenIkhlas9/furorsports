@@ -133,9 +133,10 @@ app.get('/api/db-health', async (req, res) => {
     steps.push('=== Starting database initialization ===');
     
     // Hostinger MySQL TCP connection (not socket!)
-    // Use IP address 148.222.53.5 to force IPv4 connection (from Remote MySQL page)
+    // Since Node.js app runs ON Hostinger server, use localhost for internal connection
+    // This avoids IPv6/IPv4 access denied issues
     const dbConfig = {
-      host: process.env.DB_HOST || '148.222.53.5', // MySQL server IP (forces IPv4, avoids IPv6 access denied)
+      host: process.env.DB_HOST || 'localhost', // Use localhost for internal connection (same server)
       port: parseInt(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER || 'u718394065_furorsports',
       password: process.env.DB_PASSWORD || 'Iam@745678',

@@ -25,10 +25,10 @@ const init = async () => {
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Hardcoded Hostinger MySQL credentials (used when env vars not available)
-    // IMPORTANT: Hostinger shared hosting uses TCP, not socket! (per Kodee)
-    // Try IP address from Remote MySQL page to force IPv4 connection
+    // IMPORTANT: Since Node.js app runs ON Hostinger server, use localhost for internal connection
+    // This avoids IPv6/IPv4 issues and access denied errors
     const HOSTINGER_DB_CONFIG = {
-      host: '148.222.53.5', // MySQL server IP from Hostinger Remote MySQL page (forces IPv4)
+      host: 'localhost', // Use localhost for internal connection (same server)
       port: 3306,
       user: 'u718394065_furorsports',
       password: 'Iam@745678',
