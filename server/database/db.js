@@ -8,9 +8,14 @@ const init = async () => {
   try {
     // Log database configuration (without password)
     console.log('Initializing MySQL database connection...');
-    console.log('DB_HOST:', process.env.DB_HOST || 'localhost');
-    console.log('DB_USER:', process.env.DB_USER || 'u718394065_furorsports');
-    console.log('DB_NAME:', process.env.DB_NAME || 'u718394065_furorsports_db');
+    console.log('=== ENVIRONMENT VARIABLES DEBUG ===');
+    console.log('All process.env keys:', Object.keys(process.env).filter(k => k.includes('DB_') || k.includes('NODE_')).join(', '));
+    console.log('DB_HOST:', process.env.DB_HOST || 'localhost', '(env var exists:', !!process.env.DB_HOST + ')');
+    console.log('DB_USER:', process.env.DB_USER || 'u718394065_furorsports', '(env var exists:', !!process.env.DB_USER + ')');
+    console.log('DB_NAME:', process.env.DB_NAME || 'u718394065_furorsports_db', '(env var exists:', !!process.env.DB_NAME + ')');
+    console.log('DB_PASSWORD exists:', !!process.env.DB_PASSWORD);
+    console.log('NODE_ENV:', process.env.NODE_ENV, '(env var exists:', !!process.env.NODE_ENV + ')');
+    console.log('===================================');
     
     // Create MySQL connection pool
     pool = mysql.createPool({
