@@ -232,12 +232,15 @@ app.listen(PORT, () => {
   console.log(`✓ API endpoints available at: http://localhost:${PORT}/api`);
   
   // Initialize database in background
+  console.log('=== Starting database initialization ===');
   db.init().then(() => {
+    const { isReady } = require('./database/db');
     console.log('✓✓✓ Database initialized successfully ✓✓✓');
     console.log(`✓ Using MySQL database: ${process.env.DB_NAME || 'u718394065_furorsports_db'}`);
     console.log(`✓ Database type: MySQL (NOT SQLite)`);
     console.log(`✓ Migration completed: SQLite -> MySQL`);
-    console.log(`✓ Database is ready - isDatabaseReady: ${require('./database/db').isReady()}`);
+    console.log(`✓ Database is ready - isDatabaseReady: ${isReady()}`);
+    console.log(`✓ You can now use /api/health to verify status`);
   }).catch(err => {
     console.error('✗✗✗ ERROR: Failed to initialize database ✗✗✗');
     console.error('✗ Database type: MySQL (NOT SQLite)');
@@ -245,11 +248,13 @@ app.listen(PORT, () => {
     console.error('✗ Error code:', err.code);
     console.error('✗ Error message:', err.message);
     console.error('✗ Error sqlState:', err.sqlState);
-    console.error('✗ Full error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error('✗ Full error object:', err);
+    console.error('✗ Error stack:', err.stack);
     console.error('✗ Server is running but database operations will fail');
     console.error('✗ Please check MySQL connection and restart deployment');
     console.error('✗ Check /api/health endpoint for status');
     console.error('✗ Check /api/mysql-test endpoint to verify connection');
+    console.error('✗ Try /api/db-init to manually initialize');
   });
 });
 
