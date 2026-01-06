@@ -39,6 +39,20 @@ app.use('/images', express.static(path.join(__dirname, '../client/public/images'
 const db = require('./database/db');
 const { pool, isReady } = require('./database/db');
 
+// Environment test endpoint (to verify env vars reach the process)
+app.get('/env-test', (req, res) => {
+  res.json({
+    NODE_ENV: process.env.NODE_ENV || null,
+    PORT: process.env.PORT || null,
+    DB_HOST: process.env.DB_HOST || null,
+    DB_NAME: process.env.DB_NAME || null,
+    DB_USER: process.env.DB_USER || null,
+    DB_PASSWORD: process.env.DB_PASSWORD ? '***SET***' : null,
+    CLIENT_URL: process.env.CLIENT_URL || null,
+    all_env_keys: Object.keys(process.env).filter(k => k.includes('DB_') || k.includes('NODE_') || k.includes('CLIENT_') || k === 'PORT')
+  });
+});
+
 // Health check endpoint (works even if database fails)
 app.get('/api/health', (req, res) => {
   // Get all environment variables (for debugging)
