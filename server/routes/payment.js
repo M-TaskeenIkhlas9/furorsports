@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../database/db');
+const { pool, isReady } = require('../database/db');
 const { sendOrderConfirmationEmail } = require('../utils/emailService');
 
 // Middleware to check if database is ready
 const checkDatabase = (req, res, next) => {
-  if (!pool) {
+  if (!pool || !isReady()) {
     return res.status(503).json({ 
-      error: 'Database is not ready yet. Please wait a moment and try again.' 
+      error: 'Database is not ready yet. Please wait a moment and try again.',
+      status: 'database_initializing'
     });
   }
   next();

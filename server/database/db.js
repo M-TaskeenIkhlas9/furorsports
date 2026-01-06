@@ -2,6 +2,7 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 let pool;
+let isDatabaseReady = false;
 
 const init = async () => {
   try {
@@ -32,6 +33,9 @@ const init = async () => {
     
     // Seed data
     await seedData();
+    
+    // Mark database as ready
+    isDatabaseReady = true;
     
     console.log('✓ Database initialization completed successfully');
     return Promise.resolve();
@@ -455,4 +459,6 @@ const dbHelpers = {
   }
 };
 
-module.exports = { init, getDb, pool, dbHelpers };
+const isReady = () => isDatabaseReady;
+
+module.exports = { init, getDb, pool, dbHelpers, isReady };
