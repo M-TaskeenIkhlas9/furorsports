@@ -84,12 +84,16 @@ const init = async () => {
     console.log('================================');
     
     // Create MySQL connection pool (using socket for Hostinger, TCP for local dev)
-    console.log('Attempting MySQL connection...');
+    console.log('=== STEP 1: Creating MySQL connection pool ===');
     pool = mysql.createPool(dbConfig);
+    console.log('✓ Connection pool created');
 
     let connection;
+    console.log('=== STEP 2: Getting connection from pool ===');
     try {
       connection = await pool.getConnection();
+      console.log('✓ Connection obtained from pool');
+      
       if (dbConfig.socketPath) {
         console.log('✓ Connected to MySQL database successfully via SOCKET:', dbConfig.socketPath);
       } else {
@@ -97,17 +101,23 @@ const init = async () => {
       }
       
       // Test a simple query
+      console.log('=== STEP 3: Testing database query ===');
       const [rows] = await connection.query('SELECT DATABASE() as current_db');
-      console.log('✓ Current database:', rows[0].current_db);
+      console.log('✓ Query successful - Current database:', rows[0].current_db);
+      
+      connection.release();
+      console.log('✓ Connection released');
       
       // Mark database as ready IMMEDIATELY after successful connection
       // This ensures the database is marked ready even if table creation fails
+      console.log('=== STEP 4: Marking database as ready ===');
       isDatabaseReady = true;
-      console.log('✓✓✓ Database connection confirmed - marking as ready ✓✓✓');
-      
-      connection.release();
+      console.log('✓✓✓ Database connection confirmed - isDatabaseReady set to TRUE ✓✓✓');
     } catch (connError) {
-      console.error('✗ Error getting connection:', connError.code, connError.message);
+      console.error('✗✗✗ Error in connection steps ✗✗✗');
+      console.error('Error code:', connError.code);
+      console.error('Error message:', connError.message);
+      console.error('Error stack:', connError.stack);
       if (connection) {
         connection.release();
       }

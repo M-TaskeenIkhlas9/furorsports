@@ -124,6 +124,26 @@ app.get('/api/env-test', (req, res) => {
   });
 });
 
+// Manual database initialization endpoint (for testing)
+app.get('/api/db-init', async (req, res) => {
+  try {
+    const db = require('./database/db');
+    await db.init();
+    res.json({ 
+      success: true, 
+      message: 'Database initialized successfully',
+      isReady: require('./database/db').isReady()
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: error.message,
+      code: error.code,
+      isReady: require('./database/db').isReady()
+    });
+  }
+});
+
 // Health check endpoint (works even if database fails)
 app.get('/api/health', (req, res) => {
   // Get all environment variables (for debugging)
