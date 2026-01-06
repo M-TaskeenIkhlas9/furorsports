@@ -124,9 +124,10 @@ router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
     const [rows] = await pool.query('SELECT * FROM products WHERE category = ? ORDER BY created_at DESC', [category]);
-    res.json(rows);
+    res.json(rows || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in GET /api/products/category/:category:', err);
+    res.json([]); // Return empty array so frontend doesn't crash
   }
 });
 
@@ -134,9 +135,10 @@ router.get('/category/:category', async (req, res) => {
 router.get('/meta/categories', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT DISTINCT category FROM products ORDER BY category');
-    res.json(rows.map(row => row.category));
+    res.json((rows || []).map(row => row.category));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in GET /api/products/meta/categories:', err);
+    res.json([]); // Return empty array so frontend doesn't crash
   }
 });
 
