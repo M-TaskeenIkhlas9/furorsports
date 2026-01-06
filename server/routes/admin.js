@@ -5,6 +5,24 @@ const path = require('path');
 const fs = require('fs');
 const { pool } = require('../database/db');
 
+// Middleware to check if database is ready
+const checkDatabase = (req, res, next) => {
+  if (!pool) {
+    return res.status(503).json({ 
+      error: 'Database is not ready yet. Please wait a moment and try again.' 
+    });
+  }
+  next();
+};
+
+// Apply middleware to all routes (except upload-image which doesn't need DB)
+router.use((req, res, next) => {
+  if (req.path === '/upload-image') {
+    return next(); // Skip DB check for image upload
+  }
+  checkDatabase(req, res, next);
+});
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

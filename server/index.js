@@ -37,6 +37,7 @@ app.use('/images', express.static(path.join(__dirname, '../client/public/images'
 
 // Initialize database (will start server after init)
 const db = require('./database/db');
+const { pool } = require('./database/db');
 
 // Health check endpoint (works even if database fails)
 app.get('/api/health', (req, res) => {

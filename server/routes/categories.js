@@ -2,6 +2,19 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../database/db');
 
+// Middleware to check if database is ready
+const checkDatabase = (req, res, next) => {
+  if (!pool) {
+    return res.status(503).json({ 
+      error: 'Database is not ready yet. Please wait a moment and try again.' 
+    });
+  }
+  next();
+};
+
+// Apply middleware to all routes
+router.use(checkDatabase);
+
 // Get all categories with their subcategories
 router.get('/', async (req, res) => {
   try {
