@@ -63,18 +63,32 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Start server after database initialization
+console.log('Starting server initialization...');
+console.log('Environment check:');
+console.log('  NODE_ENV:', process.env.NODE_ENV);
+console.log('  PORT:', process.env.PORT || 5000);
+console.log('  DB_HOST:', process.env.DB_HOST || 'localhost');
+console.log('  DB_USER:', process.env.DB_USER || 'u718394065_furorsports');
+console.log('  DB_NAME:', process.env.DB_NAME || 'u718394065_furorsports_db');
+console.log('  CLIENT_URL:', process.env.CLIENT_URL || 'not set');
+
 db.init().then(() => {
+  console.log('Database initialized successfully, starting server...');
   app.listen(PORT, () => {
-    console.log(`✓ Server is running on port ${PORT}`);
+    console.log(`✓✓✓ Server is running on port ${PORT} ✓✓✓`);
     console.log(`✓ Using MySQL database: ${process.env.DB_NAME || 'u718394065_furorsports_db'}`);
     console.log(`✓ Database type: MySQL (NOT SQLite)`);
     console.log(`✓ Migration completed: SQLite -> MySQL`);
+    console.log(`✓ API endpoints available at: http://localhost:${PORT}/api`);
   });
 }).catch(err => {
-  console.error('✗ FATAL: Failed to initialize database. Server cannot start.');
-  console.error('✗ Database type: MySQL');
-  console.error('✗ This error should NOT mention SQLite. If you see SQLite errors, old code is running.');
-  console.error(err);
+  console.error('✗✗✗ FATAL: Failed to initialize database. Server cannot start. ✗✗✗');
+  console.error('✗ Database type: MySQL (NOT SQLite)');
+  console.error('✗ If you see SQLite errors, old code is running.');
+  console.error('✗ Error details:', err.message);
+  console.error('✗ Full error:', err);
+  console.error('\n✗ Server is NOT running - all API requests will fail with "Failed to fetch"');
+  console.error('✗ Please check MySQL connection and restart deployment');
   process.exit(1);
 });
 
