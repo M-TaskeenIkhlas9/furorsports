@@ -38,6 +38,23 @@ app.use('/images', express.static(path.join(__dirname, '../client/public/images'
 // Initialize database (will start server after init)
 const db = require('./database/db');
 
+// Health check endpoint (works even if database fails)
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    server: 'running',
+    database: pool ? 'connected' : 'not connected',
+    timestamp: new Date().toISOString(),
+    environment: {
+      node_env: process.env.NODE_ENV,
+      port: process.env.PORT || 5000,
+      db_host: process.env.DB_HOST || 'localhost',
+      db_name: process.env.DB_NAME || 'not set',
+      db_user: process.env.DB_USER || 'not set'
+    }
+  });
+});
+
 // API Routes (must come before static files)
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
@@ -62,7 +79,8 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Start server after database initialization
+// Start server immediately (health check will work even without DB)
+// But try to initialize database in background
 console.log('Starting server initialization...');
 console.log('Environment check:');
 console.log('  NODE_ENV:', process.env.NODE_ENV);
@@ -72,23 +90,27 @@ console.log('  DB_USER:', process.env.DB_USER || 'u718394065_furorsports');
 console.log('  DB_NAME:', process.env.DB_NAME || 'u718394065_furorsports_db');
 console.log('  CLIENT_URL:', process.env.CLIENT_URL || 'not set');
 
-db.init().then(() => {
-  console.log('Database initialized successfully, starting server...');
-  app.listen(PORT, () => {
-    console.log(`✓✓✓ Server is running on port ${PORT} ✓✓✓`);
+// Start server immediately so health check works
+app.listen(PORT, () => {
+  console.log(`✓✓✓ Server is running on port ${PORT} ✓✓✓`);
+  console.log(`✓ Health check available at: http://localhost:${PORT}/api/health`);
+  console.log(`✓ API endpoints available at: http://localhost:${PORT}/api`);
+  
+  // Initialize database in background
+  db.init().then(() => {
+    console.log('✓✓✓ Database initialized successfully ✓✓✓');
     console.log(`✓ Using MySQL database: ${process.env.DB_NAME || 'u718394065_furorsports_db'}`);
     console.log(`✓ Database type: MySQL (NOT SQLite)`);
     console.log(`✓ Migration completed: SQLite -> MySQL`);
-    console.log(`✓ API endpoints available at: http://localhost:${PORT}/api`);
+  }).catch(err => {
+    console.error('✗✗✗ ERROR: Failed to initialize database ✗✗✗');
+    console.error('✗ Database type: MySQL (NOT SQLite)');
+    console.error('✗ If you see SQLite errors, old code is running.');
+    console.error('✗ Error details:', err.message);
+    console.error('✗ Full error:', err);
+    console.error('✗ Server is running but database operations will fail');
+    console.error('✗ Please check MySQL connection and restart deployment');
+    console.error('✗ Check /api/health endpoint for status');
   });
-}).catch(err => {
-  console.error('✗✗✗ FATAL: Failed to initialize database. Server cannot start. ✗✗✗');
-  console.error('✗ Database type: MySQL (NOT SQLite)');
-  console.error('✗ If you see SQLite errors, old code is running.');
-  console.error('✗ Error details:', err.message);
-  console.error('✗ Full error:', err);
-  console.error('\n✗ Server is NOT running - all API requests will fail with "Failed to fetch"');
-  console.error('✗ Please check MySQL connection and restart deployment');
-  process.exit(1);
 });
 
