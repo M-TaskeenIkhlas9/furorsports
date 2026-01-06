@@ -5,7 +5,15 @@ const { pool, isReady } = require('../database/db');
 // Middleware to check if database is ready
 const checkDatabase = (req, res, next) => {
   if (!pool || !isReady()) {
-    // Return empty array instead of error object so frontend doesn't crash
+    console.error('Database not ready - pool:', !!pool, 'isReady:', isReady());
+    // Return proper JSON error instead of empty array for POST/PUT/DELETE
+    if (req.method !== 'GET') {
+      return res.status(503).json({ 
+        error: 'Database is not connected. Please wait a moment and try again.',
+        status: 'database_not_ready'
+      });
+    }
+    // Return empty array for GET requests so frontend doesn't crash
     return res.json([]);
   }
   next();
