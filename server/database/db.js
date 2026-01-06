@@ -87,23 +87,32 @@ const init = async () => {
     console.log('Attempting MySQL connection...');
     pool = mysql.createPool(dbConfig);
 
-    const connection = await pool.getConnection();
-    if (dbConfig.socketPath) {
-      console.log('✓ Connected to MySQL database successfully via SOCKET:', dbConfig.socketPath);
-    } else {
-      console.log('✓ Connected to MySQL database successfully via TCP:', dbConfig.host);
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      if (dbConfig.socketPath) {
+        console.log('✓ Connected to MySQL database successfully via SOCKET:', dbConfig.socketPath);
+      } else {
+        console.log('✓ Connected to MySQL database successfully via TCP:', dbConfig.host);
+      }
+      
+      // Test a simple query
+      const [rows] = await connection.query('SELECT DATABASE() as current_db');
+      console.log('✓ Current database:', rows[0].current_db);
+      
+      // Mark database as ready IMMEDIATELY after successful connection
+      // This ensures the database is marked ready even if table creation fails
+      isDatabaseReady = true;
+      console.log('✓✓✓ Database connection confirmed - marking as ready ✓✓✓');
+      
+      connection.release();
+    } catch (connError) {
+      console.error('✗ Error getting connection:', connError.code, connError.message);
+      if (connection) {
+        connection.release();
+      }
+      throw connError;
     }
-    
-    // Test a simple query
-    const [rows] = await connection.query('SELECT DATABASE() as current_db');
-    console.log('✓ Current database:', rows[0].current_db);
-    
-    connection.release();
-
-    // Mark database as ready IMMEDIATELY after successful connection
-    // This ensures the database is marked ready even if table creation fails
-    isDatabaseReady = true;
-    console.log('✓ Database connection confirmed - marking as ready');
 
     // Create tables (non-blocking - won't fail if already exists)
     console.log('Creating database tables...');
