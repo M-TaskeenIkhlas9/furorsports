@@ -133,9 +133,10 @@ app.get('/api/db-health', async (req, res) => {
     steps.push('=== Starting database initialization ===');
     
     // Hostinger MySQL TCP connection (not socket!)
-    // Use 127.0.0.1 (IPv4 localhost) as shown in phpMyAdmin: "Server: 127.0.0.1:3306"
+    // FORCE 127.0.0.1 for internal connections (same server) - matches phpMyAdmin: "Server: 127.0.0.1:3306"
+    // Ignore DB_HOST env var if it points to external hostname (which resolves to IPv6)
     const dbConfig = {
-      host: process.env.DB_HOST || '127.0.0.1', // Use 127.0.0.1 (IPv4) as shown in phpMyAdmin
+      host: '127.0.0.1', // ALWAYS use 127.0.0.1 for internal connection on same server
       port: parseInt(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER || 'u718394065_furorsports',
       password: process.env.DB_PASSWORD || 'Iam@745678',

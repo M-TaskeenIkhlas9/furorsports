@@ -36,12 +36,14 @@ const init = async () => {
     
     // Use TCP connection for Hostinger (per Kodee's recommendation)
     // If env vars are set, use them; otherwise use hardcoded TCP config
+    // IMPORTANT: Always use 127.0.0.1 for internal connections (same server) to avoid IPv6 access denied
     let dbConfig;
     
     if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
-      // Use environment variables (if they're passed)
+      // Use environment variables BUT force host to 127.0.0.1 for internal connection
+      // (env vars may have external hostname that resolves to IPv6, causing access denied)
       dbConfig = {
-        host: process.env.DB_HOST,
+        host: '127.0.0.1', // FORCE 127.0.0.1 (internal connection) - matches phpMyAdmin server info
         port: parseInt(process.env.DB_PORT) || 3306,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
