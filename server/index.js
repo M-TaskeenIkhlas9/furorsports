@@ -41,6 +41,14 @@ const { pool, isReady } = require('./database/db');
 
 // Health check endpoint (works even if database fails)
 app.get('/api/health', (req, res) => {
+  // Get all environment variables (for debugging)
+  const allEnvVars = Object.keys(process.env)
+    .filter(key => key.includes('DB_') || key.includes('NODE_') || key.includes('CLIENT_') || key.includes('PORT'))
+    .reduce((obj, key) => {
+      obj[key] = process.env[key];
+      return obj;
+    }, {});
+
   res.json({
     status: 'ok',
     server: 'running',
@@ -51,8 +59,12 @@ app.get('/api/health', (req, res) => {
       port: process.env.PORT || 5000,
       db_host: process.env.DB_HOST || 'localhost',
       db_name: process.env.DB_NAME || 'not set',
-      db_user: process.env.DB_USER || 'not set'
-    }
+      db_user: process.env.DB_USER || 'not set',
+      db_password_set: process.env.DB_PASSWORD ? 'yes (hidden)' : 'no',
+      client_url: process.env.CLIENT_URL || 'not set'
+    },
+    all_db_env_vars: allEnvVars, // Show all DB-related env vars for debugging
+    process_env_count: Object.keys(process.env).length // Total env vars available
   });
 });
 
