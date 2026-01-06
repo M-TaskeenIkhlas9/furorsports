@@ -25,10 +25,9 @@ const init = async () => {
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Hardcoded Hostinger MySQL credentials (used when env vars not available)
-    // IMPORTANT: Since Node.js app runs ON Hostinger server, use localhost for internal connection
-    // This avoids IPv6/IPv4 issues and access denied errors
+    // IMPORTANT: Use 127.0.0.1 (IPv4 localhost) as shown in phpMyAdmin: "Server: 127.0.0.1:3306"
     const HOSTINGER_DB_CONFIG = {
-      host: 'localhost', // Use localhost for internal connection (same server)
+      host: '127.0.0.1', // Use 127.0.0.1 (IPv4) as shown in phpMyAdmin server info
       port: 3306,
       user: 'u718394065_furorsports',
       password: 'Iam@745678',
