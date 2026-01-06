@@ -25,33 +25,48 @@ const init = async () => {
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Hardcoded Hostinger MySQL credentials (used when env vars not available)
+    // IMPORTANT: Hostinger requires socket connection, not TCP
     const HOSTINGER_DB_CONFIG = {
-      host: 'localhost',
+      socketPath: '/tmp/mysql.sock', // Hostinger uses socket connection
       user: 'u718394065_furorsports',
       password: 'Iam@745678',
-      database: 'u718394065_furorsports_db',
-      // Try socket path if localhost doesn't work (common on shared hosting)
-      // Common socket paths on Hostinger:
-      socketPath: null, // Will try TCP first, then socket if TCP fails
+      database: 'u718394065_furorsports_db'
     };
     
-    // Try TCP connection first (localhost)
-    let dbConfig = {
-      host: process.env.DB_HOST || HOSTINGER_DB_CONFIG.host,
-      user: process.env.DB_USER || HOSTINGER_DB_CONFIG.user,
-      password: process.env.DB_PASSWORD || HOSTINGER_DB_CONFIG.password,
-      database: process.env.DB_NAME || HOSTINGER_DB_CONFIG.database,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      connectTimeout: 10000,
-      acquireTimeout: 10000,
-      timeout: 10000
-    };
+    // Use socket connection for Hostinger (proven to work via /api/mysql-test)
+    // If env vars are set, use them; otherwise use hardcoded socket config
+    const isProduction = process.env.NODE_ENV === 'production';
+    let dbConfig;
     
-    // On Hostinger, try socket connection if TCP fails
-    // Common socket paths: /var/run/mysqld/mysqld.sock or /tmp/mysql.sock
-    // But we'll try TCP first, then catch error and try socket
+    if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
+      // Use environment variables (for local development with TCP)
+      dbConfig = {
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 10000,
+        acquireTimeout: 10000,
+        timeout: 10000
+      };
+    } else {
+      // Use socket connection for Hostinger (production)
+      dbConfig = {
+        socketPath: HOSTINGER_DB_CONFIG.socketPath,
+        user: HOSTINGER_DB_CONFIG.user,
+        password: HOSTINGER_DB_CONFIG.password,
+        database: HOSTINGER_DB_CONFIG.database,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 10000,
+        acquireTimeout: 10000,
+        timeout: 10000
+      };
+    }
     
     console.log('=== USING DATABASE CONFIG ===');
     console.log('Host:', dbConfig.host);
