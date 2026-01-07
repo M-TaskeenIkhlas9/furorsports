@@ -36,11 +36,11 @@ const checkDatabase = async (req, res, next) => {
 };
 
 // Apply middleware to all routes (except upload-image which doesn't need DB)
-router.use((req, res, next) => {
+router.use(async (req, res, next) => {
   if (req.path === '/upload-image') {
     return next(); // Skip DB check for image upload
   }
-  checkDatabase(req, res, next);
+  await checkDatabase(req, res, next);
 });
 
 // Configure multer for file uploads

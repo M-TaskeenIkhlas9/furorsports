@@ -31,7 +31,9 @@ const checkDatabase = async (req, res, next) => {
 };
 
 // Apply middleware to all routes
-router.use(checkDatabase);
+router.use(async (req, res, next) => {
+  await checkDatabase(req, res, next);
+});
 
 // Get or create session ID
 const getSessionId = (req) => {
