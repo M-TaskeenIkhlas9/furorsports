@@ -59,12 +59,14 @@ router.get('/', async (req, res) => {
     console.error('Error in GET /api/products:', err);
     console.error('Error stack:', err.stack);
     console.error('Error code:', err.code);
-    // Return error details in development, empty array in production
-    if (process.env.NODE_ENV === 'development') {
-      res.status(500).json({ error: err.message, code: err.code, stack: err.stack });
-    } else {
-      res.json([]);
-    }
+    // Return error details so we can debug
+    res.status(500).json({ 
+      error: err.message, 
+      code: err.code,
+      sqlState: err.sqlState,
+      query: query,
+      params: params
+    });
   }
 });
 

@@ -229,10 +229,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/', sitemapRoutes); // Sitemap at root level /sitemap.xml
-
-// Debug endpoint to test database queries
+// Debug endpoint to test database queries (BEFORE sitemap route)
 app.get('/api/debug/db-test', async (req, res) => {
   const { pool, isReady } = require('./database/db');
   const results = {
@@ -274,6 +271,9 @@ app.get('/api/debug/db-test', async (req, res) => {
     res.json(results);
   }
 });
+
+app.use('/api/categories', categoryRoutes);
+app.use('/', sitemapRoutes); // Sitemap at root level /sitemap.xml
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
