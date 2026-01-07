@@ -232,6 +232,49 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/', sitemapRoutes); // Sitemap at root level /sitemap.xml
 
+// Debug endpoint to test database queries
+app.get('/api/debug/db-test', async (req, res) => {
+  const { pool, isReady } = require('./database/db');
+  const results = {
+    pool_exists: !!pool,
+    is_ready: isReady(),
+    tests: {}
+  };
+  
+  if (!pool || !isReady()) {
+    return res.json(results);
+  }
+  
+  try {
+    // Test 1: Simple query
+    const [test1] = await pool.query('SELECT COUNT(*) as count FROM products');
+    results.tests.products_count = test1[0]?.count || 0;
+    
+    // Test 2: Get products
+    const [test2] = await pool.query('SELECT * FROM products LIMIT 3');
+    results.tests.products_rows = test2?.length || 0;
+    results.tests.products_sample = test2;
+    
+    // Test 3: Get categories
+    const [test3] = await pool.query('SELECT * FROM categories LIMIT 5');
+    results.tests.categories_rows = test3?.length || 0;
+    results.tests.categories_sample = test3;
+    
+    // Test 4: Get subcategories
+    const [test4] = await pool.query('SELECT * FROM subcategories LIMIT 5');
+    results.tests.subcategories_rows = test4?.length || 0;
+    
+    res.json(results);
+  } catch (err) {
+    results.error = {
+      message: err.message,
+      code: err.code,
+      sqlState: err.sqlState
+    };
+    res.json(results);
+  }
+});
+
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '../client/dist');
