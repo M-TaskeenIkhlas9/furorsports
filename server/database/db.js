@@ -577,13 +577,20 @@ const dbHelpers = {
 
 const isReady = () => isDatabaseReady;
 
+// Function to get current pool (always returns latest value)
+const getPool = () => pool;
+
 // Create module exports object
 const dbModule = {
   init,
   getDb,
   dbHelpers,
   isReady,
-  get pool() { return pool; } // Getter property that always returns current pool
+  getPool,
+  get pool() { 
+    console.log('GETTER CALLED - pool value:', !!pool, typeof pool);
+    return pool; 
+  } // Getter property that always returns current pool
 };
 
 module.exports = dbModule;

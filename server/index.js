@@ -230,12 +230,23 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.get('/api/debug/db-test', async (req, res) => {
-  const pool = db.pool; // Getter property returns current pool
+  // Try both getter and function
+  const poolFromGetter = db.pool;
+  const poolFromFunction = db.getPool();
   const results = {
-    pool_exists: !!pool,
+    pool_exists_getter: !!poolFromGetter,
+    pool_exists_function: !!poolFromFunction,
+    pool_type_getter: typeof poolFromGetter,
+    pool_type_function: typeof poolFromFunction,
     is_ready: db.isReady(),
     tests: {}
   };
+  
+  const pool = poolFromGetter || poolFromFunction;
+  
+  if (!pool || !db.isReady()) {
+    return res.json(results);
+  }
   
   if (!pool || !db.isReady()) {
     return res.json(results);
