@@ -288,7 +288,6 @@ app.get('/api/debug/db-test', async (req, res) => {
 });
 
 app.use('/api/categories', categoryRoutes);
-app.use('/', sitemapRoutes); // Sitemap at root level /sitemap.xml
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
