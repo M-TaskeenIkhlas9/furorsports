@@ -543,8 +543,15 @@ const AdminProducts = () => {
                         </button>
                       )}
                       {formData.image && imageInputType === 'upload' && (
-                        <div className="upload-success">
-                          ✓ Image uploaded: {formData.image}
+                        <div className="upload-success" style={{ marginTop: '10px', padding: '10px', background: '#d4edda', color: '#155724', borderRadius: '4px' }}>
+                          ✓ Image uploaded successfully! 
+                          <br />
+                          <small>{formData.image.substring(0, 60)}...</small>
+                        </div>
+                      )}
+                      {!formData.image && imageInputType === 'upload' && imageFile && (
+                        <div className="upload-warning" style={{ marginTop: '10px', padding: '10px', background: '#fff3cd', color: '#856404', borderRadius: '4px' }}>
+                          ⚠ Please click "Upload Image" button above before submitting the form
                         </div>
                       )}
                     </div>
