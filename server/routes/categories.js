@@ -103,6 +103,7 @@ router.get('/', async (req, res) => {
 // Get all categories (names only)
 router.get('/names', async (req, res) => {
   try {
+    const pool = getPool();
     const [rows] = await pool.query('SELECT id, name FROM categories ORDER BY name');
     res.json(rows || []);
   } catch (err) {
@@ -115,6 +116,7 @@ router.get('/names', async (req, res) => {
 router.get('/:categoryId/subcategories', async (req, res) => {
   try {
     const { categoryId } = req.params;
+    const pool = getPool();
     const [rows] = await pool.query(
       'SELECT id, name FROM subcategories WHERE category_id = ? ORDER BY name',
       [categoryId]
@@ -130,6 +132,7 @@ router.get('/:categoryId/subcategories', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name } = req.body;
+    const pool = getPool();
     
     if (!name || name.trim() === '') {
       return res.status(400).json({ error: 'Category name is required' });
@@ -159,6 +162,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
+    const pool = getPool();
     
     if (!name || name.trim() === '') {
       return res.status(400).json({ error: 'Category name is required' });
@@ -189,6 +193,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const pool = getPool();
     const [result] = await pool.query('DELETE FROM categories WHERE id = ?', [id]);
     
     if (result.affectedRows === 0) {
@@ -210,6 +215,7 @@ router.post('/:categoryId/subcategories', async (req, res) => {
   try {
     const { categoryId } = req.params;
     const { name } = req.body;
+    const pool = getPool();
     
     if (!name || name.trim() === '') {
       return res.status(400).json({ error: 'Subcategory name is required' });
@@ -245,6 +251,7 @@ router.put('/subcategories/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
+    const pool = getPool();
     
     if (!name || name.trim() === '') {
       return res.status(400).json({ error: 'Subcategory name is required' });
@@ -275,6 +282,7 @@ router.put('/subcategories/:id', async (req, res) => {
 router.delete('/subcategories/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const pool = getPool();
     const [result] = await pool.query('DELETE FROM subcategories WHERE id = ?', [id]);
     
     if (result.affectedRows === 0) {
