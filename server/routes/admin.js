@@ -84,7 +84,10 @@ let storage;
 if (useCloudinary && cloudinary) {
   // Use Cloudinary for persistent cloud storage
   try {
+    console.log('[CLOUDINARY] Attempting to load multer-storage-cloudinary...');
     const { CloudinaryStorage } = require('multer-storage-cloudinary');
+    console.log('[CLOUDINARY] CloudinaryStorage loaded successfully');
+    
     storage = new CloudinaryStorage({
       cloudinary: cloudinary,
       params: {
@@ -94,10 +97,16 @@ if (useCloudinary && cloudinary) {
       }
     });
     console.log('✓ Using Cloudinary storage for image uploads');
+    console.log('  Cloudinary config:', { cloud_name: cloudinary.config().cloud_name });
   } catch (err) {
-    console.error('Error setting up Cloudinary storage:', err);
+    console.error('❌ Error setting up Cloudinary storage:', err.message);
+    console.error('  Stack:', err.stack);
+    console.error('  This means images will be saved locally and lost on redeploy');
     useCloudinary = false;
+    storage = null;
   }
+} else {
+  console.log('⚠ Cloudinary not enabled:', { useCloudinary, hasCloudinary: !!cloudinary });
 }
 
 if (!storage) {
