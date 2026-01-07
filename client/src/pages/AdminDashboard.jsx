@@ -302,7 +302,7 @@ const AdminDashboard = () => {
             >
               <div className="stat-icon">💰</div>
               <div className="stat-info">
-                <h3>${(stats?.totalRevenue || 0).toFixed(2)}</h3>
+                <h3>${parseFloat(stats?.totalRevenue || 0).toFixed(2)}</h3>
                 <p>Total Revenue</p>
               </div>
             </div>
@@ -379,7 +379,7 @@ const AdminDashboard = () => {
                         <td className="order-number-cell">{order.order_number}</td>
                         <td>{order.customer_name}</td>
                         <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                        <td className="amount-cell">${order.total_amount?.toFixed(2) || '0.00'}</td>
+                        <td className="amount-cell">${parseFloat(order.total_amount || 0).toFixed(2)}</td>
                         <td>
                           <span 
                             className="status-badge-small"
