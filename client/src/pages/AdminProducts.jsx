@@ -201,10 +201,13 @@ const AdminProducts = () => {
       const data = await response.json();
 
       if (data.success) {
-        setFormData(prev => ({ ...prev, image: data.imagePath }));
-        alert('Image uploaded successfully!');
+        const cloudinaryUrl = data.imagePath || data.imageUrl;
+        setFormData(prev => ({ ...prev, image: cloudinaryUrl }));
+        // Set preview to the Cloudinary URL so user can see it
+        setImagePreview(cloudinaryUrl);
+        console.log('✓ Image uploaded, Cloudinary URL saved:', cloudinaryUrl);
+        alert(`Image uploaded successfully!${data.cloudinary ? ' (Cloudinary)' : ' (Local storage)'}`);
         setImageFile(null);
-        setImagePreview('');
       } else {
         alert(data.error || 'Image upload failed');
       }
@@ -217,6 +220,9 @@ const AdminProducts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Log what we're sending to debug
+    console.log('Submitting product with image:', formData.image);
     
     try {
       const url = editingProduct 

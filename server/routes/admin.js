@@ -229,7 +229,8 @@ router.post('/products', async (req, res) => {
       return res.status(400).json({ error: 'Name, price, and category are required' });
     }
     
-    console.log('[ADMIN] Adding product:', { name, price, category, subcategory });
+    console.log('[ADMIN] Adding product:', { name, price, category, subcategory, image: image ? (image.substring(0, 50) + '...') : 'NO IMAGE' });
+    console.log('[ADMIN] Full image URL:', image);
     
     const [result] = await pool.query(
       `INSERT INTO products (name, description, price, sale_price, image, category, subcategory, stock, featured) 
