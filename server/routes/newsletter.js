@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { pool, isReady } = require('../database/db');
+const db = require('../database/db');
+const { isReady, getPool } = db;
 
 // Middleware to check if database is ready
-const checkDatabase = (req, res, next) => {
+const checkDatabase = async (req, res, next) => {
+  const pool = getPool();
   if (!pool || !isReady()) {
     return res.status(503).json({ 
       error: 'Database is not ready yet. Please wait a moment and try again.',
@@ -26,6 +28,7 @@ router.post('/subscribe', async (req, res) => {
     }
     
     // MySQL doesn't have INSERT OR IGNORE, so we use INSERT IGNORE
+    const pool = getPool();
     const [result] = await pool.query(
       'INSERT IGNORE INTO newsletter (email, name) VALUES (?, ?)',
       [email, name || null]

@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { pool, isReady } = require('../database/db');
+const db = require('../database/db');
+const { isReady, getPool } = db;
 const { sendAdminOrderNotification } = require('../utils/emailService');
 
 // Middleware to check if database is ready
-const checkDatabase = (req, res, next) => {
+const checkDatabase = async (req, res, next) => {
+  const pool = getPool();
   if (!pool || !isReady()) {
     return res.status(503).json({ 
       error: 'Database is not ready yet. Please wait a moment and try again.',
@@ -24,6 +26,7 @@ const generateOrderNumber = () => {
 // Create order
 router.post('/create', async (req, res) => {
   try {
+    const pool = getPool();
     const { sessionId, customerInfo, items } = req.body;
     
     if (!sessionId || !customerInfo || !items || items.length === 0) {
@@ -88,6 +91,7 @@ router.post('/create', async (req, res) => {
 // Create WhatsApp order (pending status, no payment)
 router.post('/create-whatsapp', async (req, res) => {
   try {
+    const pool = getPool();
     const { sessionId, customerInfo, items } = req.body;
     
     if (!sessionId || !customerInfo || !items || items.length === 0) {
@@ -239,6 +243,7 @@ router.post('/create-whatsapp', async (req, res) => {
 // Get order by order number
 router.get('/:orderNumber', async (req, res) => {
   try {
+    const pool = getPool();
     const { orderNumber } = req.params;
     
     const [orders] = await pool.query(
