@@ -39,8 +39,8 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/images', express.static(path.join(__dirname, '../client/public/images')));
 
 // Initialize database (will start server after init)
+// IMPORTANT: require once and use properties from the module (so updates to pool/isReady are visible)
 const db = require('./database/db');
-const { pool, isReady } = require('./database/db');
 
 // MySQL connection test endpoint (to see actual MySQL error)
 app.get('/api/mysql-test', async (req, res) => {
@@ -205,7 +205,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     server: 'running',
-    database: isReady() ? 'ready' : (pool ? 'initializing' : 'not_connected'),
+    database: db.isReady() ? 'ready' : (db.pool ? 'initializing' : 'not_connected'),
     timestamp: new Date().toISOString(),
     environment: {
       node_env: process.env.NODE_ENV,
@@ -229,38 +229,34 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
-// Debug endpoint to test database queries (BEFORE sitemap route)
-// Import pool at top level so we use the same instance
-const { pool: dbPool, isReady } = require('./database/db');
-
 app.get('/api/debug/db-test', async (req, res) => {
   const results = {
-    pool_exists: !!dbPool,
-    is_ready: isReady(),
+    pool_exists: !!db.pool,
+    is_ready: db.isReady(),
     tests: {}
   };
   
-  if (!dbPool || !isReady()) {
+  if (!db.pool || !db.isReady()) {
     return res.json(results);
   }
   
   try {
     // Test 1: Simple query
-    const [test1] = await dbPool.query('SELECT COUNT(*) as count FROM products');
+    const [test1] = await db.pool.query('SELECT COUNT(*) as count FROM products');
     results.tests.products_count = test1[0]?.count || 0;
     
     // Test 2: Get products
-    const [test2] = await dbPool.query('SELECT * FROM products LIMIT 3');
+    const [test2] = await db.pool.query('SELECT * FROM products LIMIT 3');
     results.tests.products_rows = test2?.length || 0;
     results.tests.products_sample = test2;
     
     // Test 3: Get categories
-    const [test3] = await dbPool.query('SELECT * FROM categories LIMIT 5');
+    const [test3] = await db.pool.query('SELECT * FROM categories LIMIT 5');
     results.tests.categories_rows = test3?.length || 0;
     results.tests.categories_sample = test3;
     
     // Test 4: Get subcategories
-    const [test4] = await dbPool.query('SELECT * FROM subcategories LIMIT 5');
+    const [test4] = await db.pool.query('SELECT * FROM subcategories LIMIT 5');
     results.tests.subcategories_rows = test4?.length || 0;
     
     res.json(results);
@@ -311,7 +307,6 @@ app.listen(PORT, () => {
   // Initialize database in background
   console.log('=== Starting database initialization ===');
   db.init().then(() => {
-    const { isReady } = require('./database/db');
     console.log('✓✓✓ Database initialized successfully ✓✓✓');
     console.log(`✓ Using MySQL database: ${process.env.DB_NAME || 'u718394065_furorsports_db'}`);
     console.log(`✓ Database type: MySQL (NOT SQLite)`);
