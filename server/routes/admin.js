@@ -8,6 +8,8 @@ const { isReady, getPool } = db;
 
 // Middleware to check if database is ready
 const checkDatabase = async (req, res, next) => {
+  const pool = getPool();
+  if (!pool) {
     return res.status(503).json({ 
       error: 'Database is not ready yet. Please wait a moment and try again.',
       status: 'database_initializing'
@@ -17,6 +19,8 @@ const checkDatabase = async (req, res, next) => {
   if (!isReady()) {
     // Test if pool actually works even if isReady is false
     try {
+      const pool = getPool();
+      await pool.query('SELECT 1');
       // Pool works, continue
       next();
       return;
