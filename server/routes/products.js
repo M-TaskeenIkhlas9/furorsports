@@ -42,11 +42,12 @@ router.get('/', async (req, res) => {
     query += ' ORDER BY created_at DESC';
     
     // Add LIMIT if specified
+    // MySQL2 requires LIMIT to be directly in query string, not as parameter
     if (limit) {
       const limitNum = parseInt(limit, 10);
       if (!isNaN(limitNum) && limitNum > 0) {
-        query += ' LIMIT ?';
-        params.push(limitNum);
+        query += ` LIMIT ${limitNum}`;
+        // Don't push to params - LIMIT must be in query string
       }
     }
     
