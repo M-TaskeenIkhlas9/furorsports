@@ -1,16 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const { pool, isReady } = require('../database/db');
+const db = require('../database/db');
+const { isReady, getPool } = db;
 const { v4: uuidv4 } = require('uuid');
 
 // Middleware to check if database is ready
-const checkDatabase = (req, res, next) => {
-  if (!pool || !isReady()) {
+const checkDatabase = async (req, res, next) => {
+  const pool = getPool();
+  if (!pool) {
     return res.status(503).json({ 
       error: 'Database is not ready yet. Please wait a moment and try again.',
       status: 'database_initializing'
     });
   }
+  
+  if (!isReady()) {
+    try {
+      await pool.query('SELECT 1');
+      next();
+      return;
+    } catch (err) {
+      return res.status(503).json({ 
+        error: 'Database is not ready yet. Please wait a moment and try again.',
+        status: 'database_initializing'
+      });
+    }
+  }
+  
   next();
 };
 
@@ -28,6 +44,7 @@ const getSessionId = (req) => {
 // Get cart items
 router.get('/:sessionId', async (req, res) => {
   try {
+    const pool = getPool();
     const { sessionId } = req.params;
     
     const [rows] = await pool.query(
@@ -52,6 +69,7 @@ router.get('/:sessionId', async (req, res) => {
 // Add item to cart
 router.post('/add', async (req, res) => {
   try {
+    const pool = getPool();
     const { sessionId, productId, quantity = 1, size = null, color = null } = req.body;
     
     if (!sessionId || !productId) {
@@ -89,6 +107,7 @@ router.post('/add', async (req, res) => {
 // Update cart item quantity
 router.put('/update', async (req, res) => {
   try {
+    const pool = getPool();
     const { sessionId, cartItemId, quantity } = req.body;
     
     if (!cartItemId) {
@@ -117,6 +136,7 @@ router.put('/update', async (req, res) => {
 // Remove item from cart
 router.delete('/remove', async (req, res) => {
   try {
+    const pool = getPool();
     const { sessionId, cartItemId } = req.body;
     
     if (!cartItemId) {

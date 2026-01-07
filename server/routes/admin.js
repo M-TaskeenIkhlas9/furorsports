@@ -129,6 +129,10 @@ router.get('/products', async (req, res) => {
 // Get single product
 router.get('/products/:id', async (req, res) => {
   try {
+    const pool = getPool();
+    const { id } = req.params;
+    const [rows] = await pool.query('SELECT * FROM products WHERE id = ?', [id]);
+    
     if (rows.length === 0) {
       res.status(404).json({ error: 'Product not found' });
       return;
