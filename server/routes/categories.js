@@ -3,19 +3,38 @@ const router = express.Router();
 const { pool, isReady } = require('../database/db');
 
 // Middleware to check if database is ready
-const checkDatabase = (req, res, next) => {
-  if (!pool || !isReady()) {
-    console.error('Database not ready - pool:', !!pool, 'isReady:', isReady());
-    // Return proper JSON error instead of empty array for POST/PUT/DELETE
+const checkDatabase = async (req, res, next) => {
+  if (!pool) {
+    console.error('Database pool does not exist');
     if (req.method !== 'GET') {
       return res.status(503).json({ 
         error: 'Database is not connected. Please wait a moment and try again.',
         status: 'database_not_ready'
       });
     }
-    // Return empty array for GET requests so frontend doesn't crash
     return res.json([]);
   }
+  
+  if (!isReady()) {
+    console.error('Database not ready - isReady():', isReady());
+    // Test if pool actually works even if isReady is false
+    try {
+      await pool.query('SELECT 1');
+      // Pool works, continue
+      next();
+      return;
+    } catch (err) {
+      console.error('Pool test failed:', err.message);
+      if (req.method !== 'GET') {
+        return res.status(503).json({ 
+          error: 'Database is not connected. Please wait a moment and try again.',
+          status: 'database_not_ready'
+        });
+      }
+      return res.json([]);
+    }
+  }
+  
   next();
 };
 
