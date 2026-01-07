@@ -1,12 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../database/db');
+const db = require('../database/db');
+const { getPool } = db;
 
 // Middleware to check if database is ready
-const checkDatabase = (req, res, next) => {
-  if (!pool) {
-    // For sitemap, return basic sitemap if DB not ready
-    return res.status(503).set('Content-Type', 'application/xml').send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+const checkDatabase = async (req, res, next) => {
+  // Only check database for sitemap.xml route
+  if (req.path === '/sitemap.xml') {
+    const pool = getPool();
+    if (!pool) {
+      // For sitemap, return basic sitemap if DB not ready
+      return res.status(503).set('Content-Type', 'application/xml').send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+    }
   }
   next();
 };
@@ -28,6 +33,7 @@ router.get('/sitemap.xml', async (req, res) => {
     ];
 
     // Get all products from database
+    const pool = getPool();
     let products = [];
     try {
       const [productRows] = await pool.query('SELECT id, updated_at, created_at FROM products ORDER BY created_at DESC');

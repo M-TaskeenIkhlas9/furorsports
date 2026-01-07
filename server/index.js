@@ -289,14 +289,17 @@ app.get('/api/debug/db-test', async (req, res) => {
 
 app.use('/api/categories', categoryRoutes);
 
+// Handle sitemap route (before React Router catch-all but after API routes)
+app.use('/', sitemapRoutes); // Sitemap at root level /sitemap.xml
+
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '../client/dist');
   app.use(express.static(distPath));
   
-  // Handle React Router - all non-API routes should return index.html
+  // Handle React Router - all non-API, non-image routes should return index.html
   app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/images') && req.path !== '/sitemap.xml') {
       res.sendFile(path.join(distPath, 'index.html'));
     }
   });
