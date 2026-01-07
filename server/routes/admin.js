@@ -206,6 +206,9 @@ router.delete('/products/:id', async (req, res) => {
 // Get all orders
 router.get('/orders', async (req, res) => {
   try {
+    const pool = getPool();
+    const [rows] = await pool.query(
+      `SELECT o.*, 
        (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as item_count
        FROM orders o 
        ORDER BY o.created_at DESC`
@@ -219,13 +222,18 @@ router.get('/orders', async (req, res) => {
 // Get single order with items
 router.get('/orders/:id', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
+    const [orders] = await pool.query('SELECT * FROM orders WHERE id = ?', [id]);
+    
     if (orders.length === 0) {
       res.status(404).json({ error: 'Order not found' });
       return;
     }
     
     const order = orders[0];
+    const [items] = await pool.query(
+      `SELECT oi.*, p.name, p.image 
        FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
        WHERE oi.order_id = ?
@@ -242,9 +250,12 @@ router.get('/orders/:id', async (req, res) => {
 // Delete order (only for delivered or cancelled orders)
 router.delete('/orders/:id', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
     
     // First check if order exists and its status
+    const [orders] = await pool.query('SELECT status FROM orders WHERE id = ?', [id]);
+    
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
@@ -302,6 +313,7 @@ router.delete('/orders/:id', async (req, res) => {
 // Update order status
 router.put('/orders/:id/status', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
     const { status } = req.body;
     
@@ -310,11 +322,15 @@ router.put('/orders/:id/status', async (req, res) => {
     }
     
     // Get current order to check if we need to adjust revenue
+    const [orders] = await pool.query('SELECT status, total_amount, payment_status FROM orders WHERE id = ?', [id]);
+    
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
     
     // Update order status
+    const [result] = await pool.query(
+      'UPDATE orders SET status = ? WHERE id = ?',
       [status, id]
     );
     
@@ -334,6 +350,7 @@ router.put('/orders/:id/status', async (req, res) => {
 // Get revenue analytics
 router.get('/revenue/analytics', async (req, res) => {
   try {
+    const pool = getPool();
     const { period = 'daily', month, year } = req.query; // daily, weekly, monthly, and optional month/year
     
     let dateFormat, groupBy;
@@ -373,6 +390,8 @@ router.get('/revenue/analytics', async (req, res) => {
       LIMIT 30
     `;
     
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -381,6 +400,7 @@ router.get('/revenue/analytics', async (req, res) => {
 // Get revenue summary
 router.get('/revenue/summary', async (req, res) => {
   try {
+    const pool = getPool();
     const { month, year } = req.query; // Optional: month (1-12) and year (YYYY)
     
     const summary = {};
@@ -399,6 +419,8 @@ router.get('/revenue/summary', async (req, res) => {
     }
     
     // Today's revenue
+    const [todayRows] = await pool.query(
+      `SELECT SUM(total_amount) as total, COUNT(*) as orders 
        FROM orders 
        WHERE status IN ('processing', 'shipped', 'delivered') 
          AND status != 'canceled' 
@@ -411,6 +433,8 @@ router.get('/revenue/summary', async (req, res) => {
     };
     
     // This week's revenue
+    const [weekRows] = await pool.query(
+      `SELECT SUM(total_amount) as total, COUNT(*) as orders 
        FROM orders 
        WHERE status IN ('processing', 'shipped', 'delivered') 
          AND status != 'canceled' 
@@ -431,11 +455,15 @@ router.get('/revenue/summary', async (req, res) => {
         AND status != 'cancelled'
       ${monthFilter}
     `;
+    const [monthRows] = await pool.query(monthQuery, monthParams);
+    summary.month = {
       revenue: monthRows[0]?.total || 0,
       orders: monthRows[0]?.orders || 0
     };
     
     // Total revenue
+    const [totalRows] = await pool.query(
+      `SELECT SUM(total_amount) as total, COUNT(*) as orders 
        FROM orders 
        WHERE status IN ('processing', 'shipped', 'delivered') 
          AND status != 'canceled' 
@@ -455,19 +483,32 @@ router.get('/revenue/summary', async (req, res) => {
 // Get dashboard statistics
 router.get('/dashboard/stats', async (req, res) => {
   try {
+    const pool = getPool();
     const stats = {};
     
     // Total products
+    const [productRows] = await pool.query('SELECT COUNT(*) as count FROM products');
+    stats.totalProducts = productRows[0].count;
     
     // Total orders
+    const [orderRows] = await pool.query('SELECT COUNT(*) as count FROM orders');
+    stats.totalOrders = orderRows[0].count;
     
     // Total revenue (only confirmed orders: processing, shipped, delivered - not canceled)
+    const [revenueRows] = await pool.query('SELECT SUM(total_amount) as total FROM orders WHERE status IN ("processing", "shipped", "delivered") AND status != "canceled" AND status != "cancelled"');
+    stats.totalRevenue = revenueRows[0]?.total || 0;
     
     // Low stock products
+    const [lowStockRows] = await pool.query('SELECT COUNT(*) as count FROM products WHERE stock < 10');
+    stats.lowStockProducts = lowStockRows[0].count;
     
     // Non-shipped orders (status is 'processing' - orders that haven't been shipped yet)
+    const [nonShippedRows] = await pool.query(`SELECT COUNT(*) as count FROM orders WHERE status = 'processing'`);
+    stats.nonShippedOrders = nonShippedRows[0].count;
     
     // Non-delivered orders (status is NOT 'delivered' and NOT cancelled)
+    const [nonDeliveredRows] = await pool.query(`SELECT COUNT(*) as count FROM orders WHERE (status IS NULL OR status != 'delivered') AND (status IS NULL OR (status != 'cancelled' AND status != 'canceled'))`);
+    stats.nonDeliveredOrders = nonDeliveredRows[0].count;
     
     res.json(stats);
   } catch (err) {
@@ -497,6 +538,9 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
 // Get all categories and subcategories
 router.get('/categories', async (req, res) => {
   try {
+    const pool = getPool();
+    const [rows] = await pool.query(
+      `SELECT DISTINCT category, subcategory 
        FROM products 
        WHERE category IS NOT NULL 
        ORDER BY category, subcategory`
@@ -521,6 +565,7 @@ router.get('/categories', async (req, res) => {
 // Reset admin password (for initial setup - use with caution)
 router.post('/reset-password', async (req, res) => {
   try {
+    const pool = getPool();
     const { newPassword } = req.body;
     
     if (!newPassword) {
@@ -532,11 +577,14 @@ router.post('/reset-password', async (req, res) => {
     }
     
     // Check if admin exists
+    const [countRows] = await pool.query('SELECT COUNT(*) as count FROM admin');
     if (countRows[0].count === 0) {
       // Insert new password
+      await pool.query('INSERT INTO admin (password) VALUES (?)', [newPassword]);
       res.json({ success: true, message: 'Password set successfully' });
     } else {
       // Update existing password
+      await pool.query(
         'UPDATE admin SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM admin ORDER BY id LIMIT 1)',
         [newPassword]
       );
@@ -550,6 +598,7 @@ router.post('/reset-password', async (req, res) => {
 // Change admin password
 router.post('/change-password', async (req, res) => {
   try {
+    const pool = getPool();
     const { currentPassword, newPassword } = req.body;
     
     if (!currentPassword || !newPassword) {
@@ -561,6 +610,7 @@ router.post('/change-password', async (req, res) => {
     }
     
     // Verify current password
+    const [rows] = await pool.query('SELECT password FROM admin ORDER BY id LIMIT 1');
     if (rows.length === 0) {
       return res.status(500).json({ success: false, error: 'Admin not configured' });
     }
@@ -570,6 +620,7 @@ router.post('/change-password', async (req, res) => {
     }
     
     // Update password
+    await pool.query(
       'UPDATE admin SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM admin ORDER BY id LIMIT 1)',
       [newPassword]
     );
@@ -583,6 +634,9 @@ router.post('/change-password', async (req, res) => {
 // Get admin notifications
 router.get('/notifications', async (req, res) => {
   try {
+    const pool = getPool();
+    const [notifications] = await pool.query(
+      `SELECT * FROM admin_notifications 
        ORDER BY created_at DESC 
        LIMIT 50`
     );
@@ -595,6 +649,9 @@ router.get('/notifications', async (req, res) => {
 // Get unread notifications count
 router.get('/notifications/unread-count', async (req, res) => {
   try {
+    const pool = getPool();
+    const [rows] = await pool.query(
+      `SELECT COUNT(*) as count FROM admin_notifications WHERE read = 0`
     );
     res.json({ count: rows[0].count });
   } catch (err) {
@@ -605,7 +662,9 @@ router.get('/notifications/unread-count', async (req, res) => {
 // Mark notification as read
 router.put('/notifications/:id/read', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
+    await pool.query(
       `UPDATE admin_notifications SET read = 1 WHERE id = ?`,
       [id]
     );
@@ -618,6 +677,8 @@ router.put('/notifications/:id/read', async (req, res) => {
 // Mark all notifications as read
 router.put('/notifications/read-all', async (req, res) => {
   try {
+    const pool = getPool();
+    await pool.query(
       `UPDATE admin_notifications SET read = 1 WHERE read = 0`
     );
     res.json({ success: true });
@@ -629,6 +690,7 @@ router.put('/notifications/read-all', async (req, res) => {
 // Add product image
 router.post('/products/:id/images', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
     const { imageUrl, displayOrder = 0 } = req.body;
     
@@ -636,6 +698,8 @@ router.post('/products/:id/images', async (req, res) => {
       return res.status(400).json({ error: 'Image URL is required' });
     }
     
+    const [result] = await pool.query(
+      'INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)',
       [id, imageUrl, displayOrder]
     );
     res.json({ success: true, id: result.insertId });
@@ -647,7 +711,9 @@ router.post('/products/:id/images', async (req, res) => {
 // Delete product image
 router.delete('/products/:id/images/:imageId', async (req, res) => {
   try {
+    const pool = getPool();
     const { id, imageId } = req.params;
+    await pool.query(
       'DELETE FROM product_images WHERE id = ? AND product_id = ?',
       [imageId, id]
     );
@@ -660,6 +726,7 @@ router.delete('/products/:id/images/:imageId', async (req, res) => {
 // Add product variant (size/color)
 router.post('/products/:id/variants', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
     const { size, color, stock = 0, priceAdjustment = 0 } = req.body;
     
@@ -667,6 +734,8 @@ router.post('/products/:id/variants', async (req, res) => {
       return res.status(400).json({ error: 'Size or color is required' });
     }
     
+    const [result] = await pool.query(
+      'INSERT INTO product_variants (product_id, size, color, stock, price_adjustment) VALUES (?, ?, ?, ?, ?)',
       [id, size || null, color || null, stock, priceAdjustment]
     );
     res.json({ success: true, id: result.insertId });
@@ -678,9 +747,11 @@ router.post('/products/:id/variants', async (req, res) => {
 // Update product variant
 router.put('/products/:id/variants/:variantId', async (req, res) => {
   try {
+    const pool = getPool();
     const { id, variantId } = req.params;
     const { size, color, stock, priceAdjustment } = req.body;
     
+    await pool.query(
       'UPDATE product_variants SET size = ?, color = ?, stock = ?, price_adjustment = ? WHERE id = ? AND product_id = ?',
       [size || null, color || null, stock, priceAdjustment, variantId, id]
     );
@@ -693,7 +764,9 @@ router.put('/products/:id/variants/:variantId', async (req, res) => {
 // Delete product variant
 router.delete('/products/:id/variants/:variantId', async (req, res) => {
   try {
+    const pool = getPool();
     const { id, variantId } = req.params;
+    await pool.query(
       'DELETE FROM product_variants WHERE id = ? AND product_id = ?',
       [variantId, id]
     );
@@ -706,6 +779,9 @@ router.delete('/products/:id/variants/:variantId', async (req, res) => {
 // Get all customers with their order statistics
 router.get('/customers', async (req, res) => {
   try {
+    const pool = getPool();
+    const [customers] = await pool.query(
+      `SELECT 
         email,
         customer_name as name,
         phone,
@@ -729,9 +805,13 @@ router.get('/customers', async (req, res) => {
 // Get customer details with all orders
 router.get('/customers/:email', async (req, res) => {
   try {
+    const pool = getPool();
     const { email } = req.params;
     
     // Get customer info from first order
+    const [customerRows] = await pool.query(
+      `SELECT 
+        customer_name, email, phone, address, city, country
        FROM orders
        WHERE email = ?
        LIMIT 1`,
@@ -745,6 +825,8 @@ router.get('/customers/:email', async (req, res) => {
     const customerInfo = customerRows[0];
     
     // Get all orders for this customer
+    const [orders] = await pool.query(
+      `SELECT 
         id,
         order_number,
         total_amount,
