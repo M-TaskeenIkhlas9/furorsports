@@ -20,7 +20,7 @@ const checkDatabase = async (req, res, next) => {
     // Test if pool actually works even if isReady is false
     try {
       const pool = getPool();
-    await pool.query('SELECT 1');
+      await pool.query('SELECT 1');
       // Pool works, continue
       next();
       return;
@@ -115,9 +115,7 @@ const checkAdmin = async (req, res, next) => {
   try {
     const pool = getPool();
     const { password } = req.body;
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query('SELECT password FROM admin ORDER BY id LIMIT 1');
+    const [rows] = await pool.query('SELECT password FROM admin ORDER BY id LIMIT 1');
     
     if (rows.length === 0 || password !== rows[0].password) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -170,9 +168,7 @@ router.post('/products', async (req, res) => {
       return res.status(400).json({ error: 'Name, price, and category are required' });
     }
     
-    const pool = getPool();
     const [result] = await pool.query(
-    await pool.query(
       `INSERT INTO products (name, description, price, sale_price, image, category, subcategory, stock, featured) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0]
