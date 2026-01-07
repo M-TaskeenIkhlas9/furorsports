@@ -120,6 +120,8 @@ const checkAdmin = async (req, res, next) => {
 // Get all products (admin view with all details)
 router.get('/products', async (req, res) => {
   try {
+    const pool = getPool();
+    const [rows] = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
