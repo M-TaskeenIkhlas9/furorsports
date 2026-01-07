@@ -617,6 +617,22 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
       return res.status(400).json({ error: 'No image file provided' });
     }
     
+    console.log('=== IMAGE UPLOAD DEBUG ===');
+    console.log('useCloudinary:', useCloudinary);
+    console.log('req.file keys:', Object.keys(req.file));
+    console.log('req.file:', {
+      filename: req.file.filename,
+      path: req.file.path,
+      url: req.file.url,
+      secure_url: req.file.secure_url,
+      public_id: req.file.public_id
+    });
+    console.log('Environment vars:', {
+      CLOUDINARY_CLOUD_NAME: !!process.env.CLOUDINARY_CLOUD_NAME,
+      CLOUDINARY_API_KEY: !!process.env.CLOUDINARY_API_KEY,
+      CLOUDINARY_API_SECRET: !!process.env.CLOUDINARY_API_SECRET
+    });
+    
     let imagePath;
     let imageUrl;
     
