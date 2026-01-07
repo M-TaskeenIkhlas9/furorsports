@@ -661,32 +661,31 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
     let imagePath;
     let imageUrl;
     
-    // Check if Cloudinary was used
-    // multer-storage-cloudinary sets req.file.path to the Cloudinary URL
-    // It also sets public_id, format, resource_type, and may have url/secure_url
-    const isCloudinaryUpload = useCloudinary && (
-      (req.file.path && req.file.path.startsWith('https://res.cloudinary.com')) ||
-      req.file.secure_url ||
-      req.file.url ||
-      (req.file.public_id && !req.file.filename)
-    );
+    // Check if Cloudinary was used - public_id is the definitive indicator
+    // multer-storage-cloudinary always sets public_id when upload succeeds
+    const isCloudinaryUpload = useCloudinary && req.file.public_id;
     
     if (isCloudinaryUpload) {
-      // CloudinaryStorage sets path to the Cloudinary URL
-      // Fallback to secure_url, url, or construct from public_id
-      imageUrl = req.file.path || req.file.secure_url || req.file.url;
-      if (!imageUrl && req.file.public_id) {
-        // Construct URL from public_id if needed
-        const cloudName = process.env.CLOUDINARY_CLOUD_NAME || CLOUDINARY_FALLBACK.cloud_name;
-        imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${req.file.public_id}.${req.file.format || 'jpg'}`;
+      // Cloudinary upload succeeded - construct the full URL
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || CLOUDINARY_FALLBACK.cloud_name;
+      
+      // Try to get URL from response first (if available)
+      imageUrl = req.file.secure_url || req.file.url || req.file.path;
+      
+      // If no URL in response, construct it from public_id (MOST RELIABLE METHOD)
+      if (!imageUrl || !imageUrl.startsWith('https://res.cloudinary.com')) {
+        // Construct full Cloudinary URL: https://res.cloudinary.com/{cloud_name}/image/upload/{public_id}.{format}
+        const format = req.file.format || 'png';
+        imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${req.file.public_id}.${format}`;
       }
+      
       imagePath = imageUrl; // Use full Cloudinary URL
       console.log('✓ Image uploaded to Cloudinary:', imageUrl);
       console.log('  Cloudinary file info:', {
         public_id: req.file.public_id,
         format: req.file.format,
         resource_type: req.file.resource_type,
-        path: req.file.path
+        constructed_url: imageUrl
       });
     } else {
       // Local storage - path relative to /images
