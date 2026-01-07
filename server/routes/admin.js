@@ -92,7 +92,6 @@ router.post('/login', async (req, res) => {
     }
     
     // Get admin password from database
-    const pool = getPool();
     const [rows] = await pool.query('SELECT password FROM admin ORDER BY id LIMIT 1');
     
     if (rows.length === 0) {
