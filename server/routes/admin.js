@@ -6,6 +6,28 @@ const fs = require('fs');
 const db = require('../database/db');
 const { isReady, getPool } = db;
 
+// Cloudinary setup (if credentials are available)
+let cloudinary = null;
+let useCloudinary = false;
+try {
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+    useCloudinary = true;
+    console.log('✓ Cloudinary configured - images will be stored in cloud storage');
+  } else {
+    console.log('⚠ Cloudinary not configured - using local storage (images will be lost on redeploy)');
+    console.log('  To enable cloud storage, set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+  }
+} catch (err) {
+  console.log('⚠ Cloudinary package not installed - using local storage');
+  console.log('  Run: npm install cloudinary multer-storage-cloudinary');
+}
+
 // Middleware to check if database is ready
 const checkDatabase = async (req, res, next) => {
   const pool = getPool();
@@ -44,34 +66,58 @@ router.use(async (req, res, next) => {
 });
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Use server/public/images/products (same as static serving path)
-    const uploadPath = path.join(__dirname, '../public/images/products');
-    // Create directory if it doesn't exist
-    try {
-      if (!fs.existsSync(uploadPath)) {
-        fs.mkdirSync(uploadPath, { recursive: true });
+let storage;
+if (useCloudinary && cloudinary) {
+  // Use Cloudinary for persistent cloud storage
+  try {
+    const { CloudinaryStorage } = require('multer-storage-cloudinary');
+    storage = new CloudinaryStorage({
+      cloudinary: cloudinary,
+      params: {
+        folder: 'furorsports/products',
+        allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
+        transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
       }
-      cb(null, uploadPath);
-    } catch (err) {
-      console.error('Error creating upload directory:', err);
-      cb(err);
-    }
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9]/g, '-');
-    cb(null, name + '-' + uniqueSuffix + ext);
+    });
+    console.log('✓ Using Cloudinary storage for image uploads');
+  } catch (err) {
+    console.error('Error setting up Cloudinary storage:', err);
+    useCloudinary = false;
   }
-});
+}
 
-const upload = multer({
+if (!storage) {
+  // Fallback to local storage (will be lost on redeploy)
+  storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      // Use server/public/images/products (same as static serving path)
+      const uploadPath = path.join(__dirname, '../public/images/products');
+      // Create directory if it doesn't exist
+      try {
+        if (!fs.existsSync(uploadPath)) {
+          fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+      } catch (err) {
+        console.error('Error creating upload directory:', err);
+        cb(err);
+      }
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename: timestamp-originalname
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      const name = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9]/g, '-');
+      cb(null, name + '-' + uniqueSuffix + ext);
+    }
+  });
+  console.log('⚠ Using local storage - images will be lost on redeploy');
+}
+
+upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: (req, file, cb) => {
     // Accept only image files
@@ -571,14 +617,30 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
       return res.status(400).json({ error: 'No image file provided' });
     }
     
-    // Return the path that will be used in the frontend
-    const imagePath = `/images/products/${req.file.filename}`;
+    let imagePath;
+    let imageUrl;
+    
+    if (useCloudinary && req.file.path) {
+      // Cloudinary returns secure_url or url in req.file
+      imageUrl = req.file.secure_url || req.file.url;
+      imagePath = imageUrl; // Use full Cloudinary URL
+      console.log('✓ Image uploaded to Cloudinary:', imageUrl);
+    } else {
+      // Local storage - path relative to /images
+      imagePath = `/images/products/${req.file.filename}`;
+      imageUrl = imagePath;
+      console.log('⚠ Image saved to local storage (will be lost on redeploy):', imagePath);
+    }
+    
     res.json({ 
       success: true, 
       imagePath: imagePath,
-      filename: req.file.filename 
+      imageUrl: imageUrl,
+      filename: req.file.filename || req.file.public_id || 'uploaded-image',
+      cloudinary: useCloudinary
     });
   } catch (error) {
+    console.error('Error uploading image:', error);
     res.status(500).json({ error: error.message });
   }
 });
