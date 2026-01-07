@@ -156,6 +156,7 @@ router.delete('/remove', async (req, res) => {
 // Clear cart
 router.delete('/:sessionId', async (req, res) => {
   try {
+    const pool = getPool();
     const { sessionId } = req.params;
     await pool.query('DELETE FROM cart WHERE session_id = ?', [sessionId]);
     res.json({ message: 'Cart cleared' });
