@@ -89,6 +89,7 @@ const init = async () => {
     console.log('=== STEP 1: Creating MySQL connection pool ===');
     pool = mysql.createPool(dbConfig);
     console.log('✓ Connection pool created');
+    console.log('✓ Pool variable assigned - pool exists:', !!pool, 'type:', typeof pool);
 
     let connection;
     console.log('=== STEP 2: Getting connection from pool ===');
@@ -110,6 +111,7 @@ const init = async () => {
       console.log('=== STEP 4: Marking database as ready ===');
       isDatabaseReady = true;
       console.log('✓✓✓ Database connection confirmed - isDatabaseReady set to TRUE ✓✓✓');
+      console.log('✓✓✓ Final check - pool exists:', !!pool, 'isReady:', isDatabaseReady);
     } catch (connError) {
       console.error('✗✗✗ Error in connection steps ✗✗✗');
       console.error('Error code:', connError.code);
