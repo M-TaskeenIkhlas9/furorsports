@@ -25,6 +25,8 @@ router.use(checkDatabase);
 // Get all categories with their subcategories
 router.get('/', async (req, res) => {
   try {
+    console.log('GET /api/categories - pool:', !!pool, 'isReady:', isReady());
+    
     const [rows] = await pool.query(`
       SELECT 
         c.id as category_id,
@@ -35,6 +37,8 @@ router.get('/', async (req, res) => {
       LEFT JOIN subcategories s ON c.id = s.category_id
       ORDER BY c.name, s.name
     `);
+    
+    console.log('GET /api/categories - rows returned:', rows?.length || 0);
     
     // Group by category
     const categoriesMap = {};
@@ -55,11 +59,18 @@ router.get('/', async (req, res) => {
       }
     });
     
-    res.json(Object.values(categoriesMap));
+    const result = Object.values(categoriesMap);
+    console.log('GET /api/categories - returning:', result.length, 'categories');
+    res.json(result);
   } catch (err) {
     console.error('Error in GET /api/categories:', err);
-    // Return empty array so frontend doesn't crash
-    res.json([]);
+    console.error('Error stack:', err.stack);
+    // Return error details in development, empty array in production
+    if (process.env.NODE_ENV === 'development') {
+      res.status(500).json({ error: err.message, stack: err.stack });
+    } else {
+      res.json([]);
+    }
   }
 });
 

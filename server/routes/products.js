@@ -50,12 +50,20 @@ router.get('/', async (req, res) => {
       }
     }
     
+    console.log('GET /api/products - executing query:', query, 'params:', params);
     const [rows] = await pool.query(query, params);
+    console.log('GET /api/products - rows returned:', rows?.length || 0);
     res.json(rows || []);
   } catch (err) {
     console.error('Error in GET /api/products:', err);
-    // Return empty array so frontend doesn't crash
-    res.json([]);
+    console.error('Error stack:', err.stack);
+    console.error('Error code:', err.code);
+    // Return error details in development, empty array in production
+    if (process.env.NODE_ENV === 'development') {
+      res.status(500).json({ error: err.message, code: err.code, stack: err.stack });
+    } else {
+      res.json([]);
+    }
   }
 });
 
