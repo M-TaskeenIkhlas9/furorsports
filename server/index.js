@@ -244,11 +244,15 @@ app.get('/api/debug/db-test', async (req, res) => {
   
   const pool = poolFromGetter || poolFromFunction;
   
-  if (!pool || !db.isReady()) {
-    return res.json(results);
-  }
+  results.debug = {
+    poolFromGetter_is_truthy: !!poolFromGetter,
+    poolFromFunction_is_truthy: !!poolFromFunction,
+    pool_is_truthy: !!pool,
+    pool_value: pool ? 'exists' : 'null/undefined'
+  };
   
   if (!pool || !db.isReady()) {
+    results.message = 'Pool not available or database not ready';
     return res.json(results);
   }
   

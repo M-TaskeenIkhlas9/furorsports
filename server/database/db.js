@@ -1,7 +1,7 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-let pool;
+let pool = null; // Explicitly initialize as null
 let isDatabaseReady = false;
 
 const init = async () => {
@@ -578,7 +578,10 @@ const dbHelpers = {
 const isReady = () => isDatabaseReady;
 
 // Function to get current pool (always returns latest value)
-const getPool = () => pool;
+const getPool = () => {
+  console.log('getPool() called - pool is:', !!pool, typeof pool);
+  return pool;
+};
 
 // Create module exports object
 const dbModule = {
