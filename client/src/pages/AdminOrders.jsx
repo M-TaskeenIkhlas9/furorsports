@@ -147,7 +147,7 @@ const AdminOrders = () => {
       order.email || '',
       order.phone || '',
       new Date(order.created_at).toLocaleString(),
-      `$${order.total_amount?.toFixed(2) || '0.00'}`,
+      `$${parseFloat(order.total_amount || 0).toFixed(2)}`,
       order.status || '',
       order.payment_status || '',
       order.address || '',
@@ -212,7 +212,7 @@ const AdminOrders = () => {
           <div style="flex: 1;">
             <div style="font-weight: bold; margin-bottom: 2px; font-size: 13px;">${index + 1}. ${item.name}</div>
             <div style="font-size: 11px; color: #666;">
-              Qty: ${item.quantity} × $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}
+              Qty: ${item.quantity} × $${parseFloat(item.price || 0).toFixed(2)} = $${(item.quantity * parseFloat(item.price || 0)).toFixed(2)}
             </div>
           </div>
         </div>
@@ -399,7 +399,7 @@ const AdminOrders = () => {
               </div>
               <div class="info-box">
                 <strong>Total Amount</strong>
-                <div style="font-size: 16px; font-weight: bold; margin-top: 5px;">$${selectedOrder.total_amount.toFixed(2)}</div>
+                <div style="font-size: 16px; font-weight: bold; margin-top: 5px;">$${parseFloat(selectedOrder.total_amount || 0).toFixed(2)}</div>
               </div>
               <div class="info-box">
                 <strong>Payment Status</strong>
@@ -530,7 +530,7 @@ const AdminOrders = () => {
                           <td>{order.order_number}</td>
                           <td>{order.customer_name}</td>
                           <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                          <td>${order.total_amount.toFixed(2)}</td>
+                          <td>${parseFloat(order.total_amount || 0).toFixed(2)}</td>
                           <td>
                             <span 
                               className="status-badge"
@@ -622,7 +622,7 @@ const AdminOrders = () => {
                     </div>
                     <div className="info-item full-width highlight-card">
                       <label>Total Amount</label>
-                      <span className="amount">${selectedOrder.total_amount.toFixed(2)}</span>
+                      <span className="amount">${parseFloat(selectedOrder.total_amount || 0).toFixed(2)}</span>
                     </div>
                     <div className="info-item full-width">
                       <label>Payment Status</label>
@@ -676,10 +676,10 @@ const AdminOrders = () => {
                               {item.color && <span style={{ fontSize: '0.85rem', color: '#93c5fd' }}>Color: {item.color}</span>}
                             </div>
                           )}
-                          <p>Quantity: {item.quantity} × ${item.price.toFixed(2)}</p>
+                          <p>Quantity: {item.quantity} × ${parseFloat(item.price || 0).toFixed(2)}</p>
                         </div>
                         <div className="item-total">
-                          ${(item.quantity * item.price).toFixed(2)}
+                          ${(item.quantity * parseFloat(item.price || 0)).toFixed(2)}
                         </div>
                       </div>
                     ))}
