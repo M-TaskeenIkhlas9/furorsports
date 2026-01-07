@@ -957,14 +957,14 @@ const AdminProducts = () => {
                           </div>
                         </td>
                         <td>
-                          {product.sale_price && product.sale_price < product.price ? (
+                          {product.sale_price && parseFloat(product.sale_price) < parseFloat(product.price) ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                              <span style={{ color: '#ef4444', fontWeight: '700' }}>${product.sale_price.toFixed(2)}</span>
-                              <span style={{ color: '#9ca3af', textDecoration: 'line-through', fontSize: '0.85rem' }}>${product.price.toFixed(2)}</span>
+                              <span style={{ color: '#ef4444', fontWeight: '700' }}>${parseFloat(product.sale_price).toFixed(2)}</span>
+                              <span style={{ color: '#9ca3af', textDecoration: 'line-through', fontSize: '0.85rem' }}>${parseFloat(product.price).toFixed(2)}</span>
                               <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>SALE</span>
                             </div>
                           ) : (
-                            `$${product.price.toFixed(2)}`
+                            `$${parseFloat(product.price || 0).toFixed(2)}`
                           )}
                         </td>
                         <td>
