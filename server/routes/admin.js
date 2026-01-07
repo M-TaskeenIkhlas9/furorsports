@@ -46,12 +46,18 @@ router.use((req, res, next) => {
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Use server/public/images/products (same as static serving path)
     const uploadPath = path.join(__dirname, '../public/images/products');
     // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+    try {
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      cb(null, uploadPath);
+    } catch (err) {
+      console.error('Error creating upload directory:', err);
+      cb(err);
     }
-    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     // Generate unique filename: timestamp-originalname
@@ -120,11 +126,19 @@ const checkAdmin = async (req, res, next) => {
 // Get all products (admin view with all details)
 router.get('/products', async (req, res) => {
   try {
+    console.log('[ADMIN] GET /products - Starting request');
     const pool = getPool();
+    if (!pool) {
+      console.error('[ADMIN] GET /products - Pool is null');
+      return res.status(503).json({ error: 'Database pool not available' });
+    }
+    console.log('[ADMIN] GET /products - Executing query');
     const [rows] = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
-    res.json(rows);
+    console.log('[ADMIN] GET /products - Query successful, returning', rows?.length || 0, 'products');
+    res.json(rows || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[ADMIN] GET /products - Error:', err.message, err.stack);
+    res.status(500).json({ error: err.message, stack: process.env.NODE_ENV === 'development' ? err.stack : undefined });
   }
 });
 
