@@ -230,33 +230,34 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.get('/api/debug/db-test', async (req, res) => {
+  const pool = db.pool; // Getter property returns current pool
   const results = {
-    pool_exists: !!db.pool,
+    pool_exists: !!pool,
     is_ready: db.isReady(),
     tests: {}
   };
   
-  if (!db.pool || !db.isReady()) {
+  if (!pool || !db.isReady()) {
     return res.json(results);
   }
   
   try {
     // Test 1: Simple query
-    const [test1] = await db.pool.query('SELECT COUNT(*) as count FROM products');
+    const [test1] = await pool.query('SELECT COUNT(*) as count FROM products');
     results.tests.products_count = test1[0]?.count || 0;
     
     // Test 2: Get products
-    const [test2] = await db.pool.query('SELECT * FROM products LIMIT 3');
+    const [test2] = await pool.query('SELECT * FROM products LIMIT 3');
     results.tests.products_rows = test2?.length || 0;
     results.tests.products_sample = test2;
     
     // Test 3: Get categories
-    const [test3] = await db.pool.query('SELECT * FROM categories LIMIT 5');
+    const [test3] = await pool.query('SELECT * FROM categories LIMIT 5');
     results.tests.categories_rows = test3?.length || 0;
     results.tests.categories_sample = test3;
     
     // Test 4: Get subcategories
-    const [test4] = await db.pool.query('SELECT * FROM subcategories LIMIT 5');
+    const [test4] = await pool.query('SELECT * FROM subcategories LIMIT 5');
     results.tests.subcategories_rows = test4?.length || 0;
     
     res.json(results);

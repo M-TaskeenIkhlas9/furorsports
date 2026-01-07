@@ -577,4 +577,13 @@ const dbHelpers = {
 
 const isReady = () => isDatabaseReady;
 
-module.exports = { init, getDb, pool, dbHelpers, isReady };
+// Create module exports object
+const dbModule = {
+  init,
+  getDb,
+  dbHelpers,
+  isReady,
+  get pool() { return pool; } // Getter property that always returns current pool
+};
+
+module.exports = dbModule;

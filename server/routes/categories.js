@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { pool, isReady } = require('../database/db');
+const db = require('../database/db');
+const { isReady } = db;
+
+// Helper to get current pool
+const getPool = () => db.pool;
 
 // Middleware to check if database is ready
 const checkDatabase = async (req, res, next) => {
+  const pool = getPool();
   if (!pool) {
     console.error('Database pool does not exist');
     if (req.method !== 'GET') {
@@ -44,6 +49,7 @@ router.use(checkDatabase);
 // Get all categories with their subcategories
 router.get('/', async (req, res) => {
   try {
+    const pool = getPool();
     console.log('GET /api/categories - pool:', !!pool, 'isReady:', isReady());
     
     const [rows] = await pool.query(`

@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { pool, isReady } = require('../database/db');
+const db = require('../database/db');
+const { isReady } = db;
+
+// Helper to get current pool
+const getPool = () => db.pool;
 
 // Middleware to check if database is ready
 const checkDatabase = (req, res, next) => {
+  const pool = getPool();
   if (!pool || !isReady()) {
     // Return empty array instead of error object so frontend doesn't crash
     return res.json([]);
@@ -52,6 +57,7 @@ router.get('/', async (req, res) => {
     }
     
     console.log('GET /api/products - executing query:', query, 'params:', params);
+    const pool = getPool();
     const [rows] = await pool.query(query, params);
     console.log('GET /api/products - rows returned:', rows?.length || 0);
     res.json(rows || []);
@@ -74,6 +80,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const pool = getPool();
     
     const [products] = await pool.query('SELECT * FROM products WHERE id = ?', [id]);
     const product = products[0];
@@ -130,6 +137,7 @@ router.get('/:id', async (req, res) => {
 router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
+    const pool = getPool();
     const [rows] = await pool.query('SELECT * FROM products WHERE category = ? ORDER BY created_at DESC', [category]);
     res.json(rows || []);
   } catch (err) {
@@ -141,6 +149,7 @@ router.get('/category/:category', async (req, res) => {
 // Get all categories
 router.get('/meta/categories', async (req, res) => {
   try {
+    const pool = getPool();
     const [rows] = await pool.query('SELECT DISTINCT category FROM products ORDER BY category');
     res.json((rows || []).map(row => row.category));
   } catch (err) {
@@ -152,6 +161,7 @@ router.get('/meta/categories', async (req, res) => {
 // Get featured products for hero section
 router.get('/featured/hero', async (req, res) => {
   try {
+    const pool = getPool();
     // Get up to 5 featured products, or newest products if none are featured
     const [featuredRows] = await pool.query(`
       SELECT * FROM products 
