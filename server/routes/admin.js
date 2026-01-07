@@ -160,9 +160,12 @@ router.post('/products', async (req, res) => {
 // Update product
 router.put('/products/:id', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
     const { name, description, price, sale_price, image, category, subcategory, stock, featured } = req.body;
     
+    const [result] = await pool.query(
+      `UPDATE products 
        SET name = ?, description = ?, price = ?, sale_price = ?, image = ?, category = ?, subcategory = ?, stock = ?, featured = ?
        WHERE id = ?`,
       [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0, id]
