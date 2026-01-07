@@ -142,11 +142,15 @@ router.get('/products/:id', async (req, res) => {
 // Add new product
 router.post('/products', async (req, res) => {
   try {
+    const pool = getPool();
+    const { name, description, price, sale_price, image, category, subcategory, stock, featured } = req.body;
     
     if (!name || !price || !category) {
       return res.status(400).json({ error: 'Name, price, and category are required' });
     }
     
+    const [result] = await pool.query(
+      `INSERT INTO products (name, description, price, sale_price, image, category, subcategory, stock, featured) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0]
     );
