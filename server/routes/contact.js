@@ -21,6 +21,7 @@ router.use(checkDatabase);
 // Submit contact form
 router.post('/submit', async (req, res) => {
   try {
+    const pool = getPool();
     const { name, email, message } = req.body;
     
     if (!name || !email || !message) {
