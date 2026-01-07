@@ -169,11 +169,19 @@ router.post('/products', async (req, res) => {
       return res.status(400).json({ error: 'Name, price, and category are required' });
     }
     
+    console.log('[ADMIN] Adding product:', { name, price, category, subcategory });
+    
     const [result] = await pool.query(
       `INSERT INTO products (name, description, price, sale_price, image, category, subcategory, stock, featured) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0]
     );
+    
+    console.log('[ADMIN] Product inserted successfully, ID:', result.insertId);
+    
+    // Verify the product was actually inserted
+    const [verify] = await pool.query('SELECT * FROM products WHERE id = ?', [result.insertId]);
+    console.log('[ADMIN] Verification query returned:', verify.length > 0 ? 'Product found' : 'Product NOT found');
     
     res.json({ 
       success: true, 
@@ -181,6 +189,7 @@ router.post('/products', async (req, res) => {
       message: 'Product added successfully' 
     });
   } catch (err) {
+    console.error('[ADMIN] Error adding product:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -212,13 +221,32 @@ router.put('/products/:id', async (req, res) => {
 // Delete product
 router.delete('/products/:id', async (req, res) => {
   try {
+    const pool = getPool();
     const { id } = req.params;
+    
+    // First delete related order_items (if any exist)
+    await pool.query('DELETE FROM order_items WHERE product_id = ?', [id]);
+    
+    // Delete product images
+    await pool.query('DELETE FROM product_images WHERE product_id = ?', [id]);
+    
+    // Delete product variants
+    await pool.query('DELETE FROM product_variants WHERE product_id = ?', [id]);
+    
+    // Delete cart items for this product
+    await pool.query('DELETE FROM cart WHERE product_id = ?', [id]);
+    
+    // Finally delete the product itself
+    const [result] = await pool.query('DELETE FROM products WHERE id = ?', [id]);
+    
     if (result.affectedRows === 0) {
       res.status(404).json({ error: 'Product not found' });
       return;
     }
+    
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (err) {
+    console.error('Error deleting product:', err);
     res.status(500).json({ error: err.message });
   }
 });
