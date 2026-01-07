@@ -101,6 +101,51 @@ app.get('/api/mysql-test', async (req, res) => {
   }
 });
 
+// Cloudinary test endpoint
+app.get('/api/cloudinary-test', (req, res) => {
+  try {
+    const cloudinary = require('cloudinary').v2;
+    const { CloudinaryStorage } = require('multer-storage-cloudinary');
+    
+    const CLOUDINARY_FALLBACK = {
+      cloud_name: 'dmrygp1fm',
+      api_key: '395448217797185',
+      api_secret: 'ByPFqQvOwtZVHskQ7I1u2K-3A70'
+    };
+    
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || CLOUDINARY_FALLBACK.cloud_name;
+    const apiKey = process.env.CLOUDINARY_API_KEY || CLOUDINARY_FALLBACK.api_key;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET || CLOUDINARY_FALLBACK.api_secret;
+    
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret
+    });
+    
+    const storage = new CloudinaryStorage({
+      cloudinary: cloudinary,
+      params: {
+        folder: 'furorsports/products'
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Cloudinary packages loaded successfully',
+      cloud_name: cloudName,
+      using_fallback: !process.env.CLOUDINARY_CLOUD_NAME,
+      storage_type: storage.constructor.name
+    });
+  } catch (err) {
+    res.json({
+      success: false,
+      error: err.message,
+      stack: err.stack
+    });
+  }
+});
+
 // Environment test endpoint (to verify env vars reach the process)
 // Using /api/env-test to avoid routing conflicts with sitemap
 app.get('/api/env-test', (req, res) => {
