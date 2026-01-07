@@ -734,7 +734,8 @@ const AdminProducts = () => {
 
                                       if (uploadResponse.ok) {
                                         const uploadData = await uploadResponse.json();
-                                        const imageUrl = `/images/products/${uploadData.filename}`;
+                                        // Use the imagePath from response (Cloudinary URL if uploaded to cloud, or local path otherwise)
+                                        const imageUrl = uploadData.imagePath || uploadData.imageUrl || `/images/products/${uploadData.filename}`;
                                         
                                         const addResponse = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}/images`, {
                                           method: 'POST',

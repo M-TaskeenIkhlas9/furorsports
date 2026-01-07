@@ -639,7 +639,8 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
       path: req.file.path,
       url: req.file.url,
       secure_url: req.file.secure_url,
-      public_id: req.file.public_id
+      public_id: req.file.public_id,
+      format: req.file.format
     });
     console.log('Environment vars:', {
       CLOUDINARY_CLOUD_NAME: !!process.env.CLOUDINARY_CLOUD_NAME,
@@ -650,8 +651,16 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
     let imagePath;
     let imageUrl;
     
-    // Check if Cloudinary was used (CloudinaryStorage sets secure_url or url, not path)
-    if (useCloudinary && (req.file.secure_url || req.file.url)) {
+    // Check if Cloudinary was used
+    // CloudinaryStorage returns secure_url or url, and public_id (not filename)
+    const isCloudinaryUpload = useCloudinary && (
+      req.file.secure_url || 
+      req.file.url || 
+      (req.file.public_id && !req.file.path) ||
+      (req.file.url && req.file.url.startsWith('https://res.cloudinary.com'))
+    );
+    
+    if (isCloudinaryUpload) {
       // Cloudinary returns secure_url or url in req.file
       imageUrl = req.file.secure_url || req.file.url;
       imagePath = imageUrl; // Use full Cloudinary URL
@@ -666,7 +675,14 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
       imagePath = `/images/products/${req.file.filename}`;
       imageUrl = imagePath;
       console.log('⚠ Image saved to local storage (will be lost on redeploy):', imagePath);
-      console.log('  Cloudinary status:', { useCloudinary, hasPath: !!req.file.path, hasUrl: !!req.file.url, hasSecureUrl: !!req.file.secure_url });
+      console.log('  Cloudinary status:', { 
+        useCloudinary, 
+        hasPath: !!req.file.path, 
+        hasUrl: !!req.file.url, 
+        hasSecureUrl: !!req.file.secure_url,
+        hasPublicId: !!req.file.public_id,
+        detectedAsCloudinary: isCloudinaryUpload
+      });
     }
     
     res.json({ 
