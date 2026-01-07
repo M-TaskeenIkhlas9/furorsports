@@ -6,26 +6,40 @@ const fs = require('fs');
 const db = require('../database/db');
 const { isReady, getPool } = db;
 
-// Cloudinary setup (if credentials are available)
+// Cloudinary setup - HARDCODED FALLBACKS because Hostinger doesn't pass env vars properly
+// These are the same credentials from Hostinger environment variables
+const CLOUDINARY_FALLBACK = {
+  cloud_name: 'dmrygp1fm',
+  api_key: '395448217797185',
+  api_secret: 'ByPFqQvOwtZVHskQ7I1u2K-3A70'
+};
+
 let cloudinary = null;
 let useCloudinary = false;
 try {
-  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  // Use env vars if available, otherwise use hardcoded fallbacks
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || CLOUDINARY_FALLBACK.cloud_name;
+  const apiKey = process.env.CLOUDINARY_API_KEY || CLOUDINARY_FALLBACK.api_key;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET || CLOUDINARY_FALLBACK.api_secret;
+  
+  if (cloudName && apiKey && apiSecret) {
     cloudinary = require('cloudinary').v2;
     cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret
     });
     useCloudinary = true;
     console.log('✓ Cloudinary configured - images will be stored in cloud storage');
+    console.log(`  Cloud name: ${cloudName}`);
+    console.log(`  Using env vars: ${!!process.env.CLOUDINARY_CLOUD_NAME}, Using fallback: ${!process.env.CLOUDINARY_CLOUD_NAME}`);
   } else {
     console.log('⚠ Cloudinary not configured - using local storage (images will be lost on redeploy)');
-    console.log('  To enable cloud storage, set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
   }
 } catch (err) {
   console.log('⚠ Cloudinary package not installed - using local storage');
   console.log('  Run: npm install cloudinary multer-storage-cloudinary');
+  console.log('  Error:', err.message);
 }
 
 // Middleware to check if database is ready

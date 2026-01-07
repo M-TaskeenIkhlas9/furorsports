@@ -105,7 +105,7 @@ app.get('/api/mysql-test', async (req, res) => {
 // Using /api/env-test to avoid routing conflicts with sitemap
 app.get('/api/env-test', (req, res) => {
   // Filter for custom DB_* variables only (as per Kodee's suggestion)
-  const customDbKeys = Object.keys(process.env).filter(k => k.startsWith('DB_') || k === 'NODE_ENV' || k === 'PORT' || k === 'CLIENT_URL');
+  const customDbKeys = Object.keys(process.env).filter(k => k.startsWith('DB_') || k === 'NODE_ENV' || k === 'PORT' || k === 'CLIENT_URL' || k.startsWith('CLOUDINARY_'));
   
   res.json({
     NODE_ENV: process.env.NODE_ENV || null,
@@ -115,11 +115,15 @@ app.get('/api/env-test', (req, res) => {
     DB_USER: process.env.DB_USER || null,
     DB_PASSWORD: process.env.DB_PASSWORD ? '***SET***' : null,
     CLIENT_URL: process.env.CLIENT_URL || null,
+    // Cloudinary variables
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || null,
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || null,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? '***SET***' : null,
     // Custom keys only (filtered as Kodee suggested)
     custom_keys_found: customDbKeys,
     custom_keys_count: customDbKeys.length,
     // All env keys (including Hostinger internal ones)
-    all_env_keys: Object.keys(process.env).filter(k => k.includes('DB_') || k.includes('NODE_') || k.includes('CLIENT_') || k === 'PORT' || k.startsWith('LSNODE_')),
+    all_env_keys: Object.keys(process.env).filter(k => k.includes('DB_') || k.includes('NODE_') || k.includes('CLIENT_') || k === 'PORT' || k.startsWith('LSNODE_') || k.startsWith('CLOUDINARY_')),
     total_env_vars: Object.keys(process.env).length
   });
 });
