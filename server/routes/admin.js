@@ -8,8 +8,6 @@ const { isReady, getPool } = db;
 
 // Middleware to check if database is ready
 const checkDatabase = async (req, res, next) => {
-  const pool = getPool();
-  if (!pool) {
     return res.status(503).json({ 
       error: 'Database is not ready yet. Please wait a moment and try again.',
       status: 'database_initializing'
@@ -19,8 +17,6 @@ const checkDatabase = async (req, res, next) => {
   if (!isReady()) {
     // Test if pool actually works even if isReady is false
     try {
-      const pool = getPool();
-      await pool.query('SELECT 1');
       // Pool works, continue
       next();
       return;
@@ -84,16 +80,12 @@ const upload = multer({
 // Admin login
 router.post('/login', async (req, res) => {
   try {
-    const pool = getPool();
-    const { password } = req.body;
     
     if (!password) {
       return res.status(400).json({ success: false, error: 'Password is required' });
     }
     
     // Get admin password from database
-    const [rows] = await pool.query('SELECT password FROM admin ORDER BY id LIMIT 1');
-    
     if (rows.length === 0) {
       return res.status(500).json({ success: false, error: 'Admin not configured' });
     }
@@ -112,10 +104,6 @@ router.post('/login', async (req, res) => {
 // Note: This middleware is currently not used, but kept for future use
 const checkAdmin = async (req, res, next) => {
   try {
-    const pool = getPool();
-    const { password } = req.body;
-    const [rows] = await pool.query('SELECT password FROM admin ORDER BY id LIMIT 1');
-    
     if (rows.length === 0 || password !== rows[0].password) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -128,10 +116,6 @@ const checkAdmin = async (req, res, next) => {
 // Get all products (admin view with all details)
 router.get('/products', async (req, res) => {
   try {
-    const pool = getPool();
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query('SELECT * FROM products ORDER BY created_at DESC');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -141,12 +125,6 @@ router.get('/products', async (req, res) => {
 // Get single product
 router.get('/products/:id', async (req, res) => {
   try {
-    const pool = getPool();
-    const { id } = req.params;
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query('SELECT * FROM products WHERE id = ?', [id]);
-    
     if (rows.length === 0) {
       res.status(404).json({ error: 'Product not found' });
       return;
@@ -160,15 +138,11 @@ router.get('/products/:id', async (req, res) => {
 // Add new product
 router.post('/products', async (req, res) => {
   try {
-    const pool = getPool();
-    const { name, description, price, sale_price, image, category, subcategory, stock, featured } = req.body;
     
     if (!name || !price || !category) {
       return res.status(400).json({ error: 'Name, price, and category are required' });
     }
     
-    const [result] = await pool.query(
-      `INSERT INTO products (name, description, price, sale_price, image, category, subcategory, stock, featured) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0]
     );
@@ -189,10 +163,6 @@ router.put('/products/:id', async (req, res) => {
     const { id } = req.params;
     const { name, description, price, sale_price, image, category, subcategory, stock, featured } = req.body;
     
-    const pool = getPool();
-    const [result] = await pool.query(
-    await pool.query(
-      `UPDATE products 
        SET name = ?, description = ?, price = ?, sale_price = ?, image = ?, category = ?, subcategory = ?, stock = ?, featured = ?
        WHERE id = ?`,
       [name, description || '', price, sale_price || null, image || '', category, subcategory || '', stock || 100, featured ? 1 : 0, id]
@@ -212,10 +182,6 @@ router.put('/products/:id', async (req, res) => {
 router.delete('/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const pool = getPool();
-    const [result] = await pool.query(
-    await pool.query('DELETE FROM products WHERE id = ?', [id]);
-    
     if (result.affectedRows === 0) {
       res.status(404).json({ error: 'Product not found' });
       return;
@@ -229,10 +195,6 @@ router.delete('/products/:id', async (req, res) => {
 // Get all orders
 router.get('/orders', async (req, res) => {
   try {
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query(
-      `SELECT o.*, 
        (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as item_count
        FROM orders o 
        ORDER BY o.created_at DESC`
@@ -247,20 +209,12 @@ router.get('/orders', async (req, res) => {
 router.get('/orders/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const pool = getPool();
-    const [orders] = await pool.query(
-    await pool.query('SELECT * FROM orders WHERE id = ?', [id]);
-    
     if (orders.length === 0) {
       res.status(404).json({ error: 'Order not found' });
       return;
     }
     
     const order = orders[0];
-    const pool = getPool();
-    const [items] = await pool.query(
-    await pool.query(
-      `SELECT oi.*, p.name, p.image 
        FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
        WHERE oi.order_id = ?
@@ -280,10 +234,6 @@ router.delete('/orders/:id', async (req, res) => {
     const { id } = req.params;
     
     // First check if order exists and its status
-    const pool = getPool();
-    const [orders] = await pool.query(
-    await pool.query('SELECT status FROM orders WHERE id = ?', [id]);
-    
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
@@ -349,19 +299,11 @@ router.put('/orders/:id/status', async (req, res) => {
     }
     
     // Get current order to check if we need to adjust revenue
-    const pool = getPool();
-    const [orders] = await pool.query(
-    await pool.query('SELECT status, total_amount, payment_status FROM orders WHERE id = ?', [id]);
-    
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
     
     // Update order status
-    const pool = getPool();
-    const [result] = await pool.query(
-    await pool.query(
-      'UPDATE orders SET status = ? WHERE id = ?',
       [status, id]
     );
     
@@ -420,10 +362,6 @@ router.get('/revenue/analytics', async (req, res) => {
       LIMIT 30
     `;
     
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query(query, params);
-    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -450,10 +388,6 @@ router.get('/revenue/summary', async (req, res) => {
     }
     
     // Today's revenue
-    const pool = getPool();
-    const [todayRows] = await pool.query(
-    await pool.query(
-      `SELECT SUM(total_amount) as total, COUNT(*) as orders 
        FROM orders 
        WHERE status IN ('processing', 'shipped', 'delivered') 
          AND status != 'canceled' 
@@ -466,10 +400,6 @@ router.get('/revenue/summary', async (req, res) => {
     };
     
     // This week's revenue
-    const pool = getPool();
-    const [weekRows] = await pool.query(
-    await pool.query(
-      `SELECT SUM(total_amount) as total, COUNT(*) as orders 
        FROM orders 
        WHERE status IN ('processing', 'shipped', 'delivered') 
          AND status != 'canceled' 
@@ -490,19 +420,11 @@ router.get('/revenue/summary', async (req, res) => {
         AND status != 'cancelled'
       ${monthFilter}
     `;
-    const pool = getPool();
-    const [monthRows] = await pool.query(
-    await pool.query(monthQuery, monthParams);
-    summary.month = {
       revenue: monthRows[0]?.total || 0,
       orders: monthRows[0]?.orders || 0
     };
     
     // Total revenue
-    const pool = getPool();
-    const [totalRows] = await pool.query(
-    await pool.query(
-      `SELECT SUM(total_amount) as total, COUNT(*) as orders 
        FROM orders 
        WHERE status IN ('processing', 'shipped', 'delivered') 
          AND status != 'canceled' 
@@ -525,40 +447,16 @@ router.get('/dashboard/stats', async (req, res) => {
     const stats = {};
     
     // Total products
-    const pool = getPool();
-    const [productRows] = await pool.query(
-    await pool.query('SELECT COUNT(*) as count FROM products');
-    stats.totalProducts = productRows[0].count;
     
     // Total orders
-    const pool = getPool();
-    const [orderRows] = await pool.query(
-    await pool.query('SELECT COUNT(*) as count FROM orders');
-    stats.totalOrders = orderRows[0].count;
     
     // Total revenue (only confirmed orders: processing, shipped, delivered - not canceled)
-    const pool = getPool();
-    const [revenueRows] = await pool.query(
-    await pool.query('SELECT SUM(total_amount) as total FROM orders WHERE status IN ("processing", "shipped", "delivered") AND status != "canceled" AND status != "cancelled"');
-    stats.totalRevenue = revenueRows[0]?.total || 0;
     
     // Low stock products
-    const pool = getPool();
-    const [lowStockRows] = await pool.query(
-    await pool.query('SELECT COUNT(*) as count FROM products WHERE stock < 10');
-    stats.lowStockProducts = lowStockRows[0].count;
     
     // Non-shipped orders (status is 'processing' - orders that haven't been shipped yet)
-    const pool = getPool();
-    const [nonShippedRows] = await pool.query(
-    await pool.query(`SELECT COUNT(*) as count FROM orders WHERE status = 'processing'`);
-    stats.nonShippedOrders = nonShippedRows[0].count;
     
     // Non-delivered orders (status is NOT 'delivered' and NOT cancelled)
-    const pool = getPool();
-    const [nonDeliveredRows] = await pool.query(
-    await pool.query(`SELECT COUNT(*) as count FROM orders WHERE (status IS NULL OR status != 'delivered') AND (status IS NULL OR (status != 'cancelled' AND status != 'canceled'))`);
-    stats.nonDeliveredOrders = nonDeliveredRows[0].count;
     
     res.json(stats);
   } catch (err) {
@@ -588,10 +486,6 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
 // Get all categories and subcategories
 router.get('/categories', async (req, res) => {
   try {
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query(
-      `SELECT DISTINCT category, subcategory 
        FROM products 
        WHERE category IS NOT NULL 
        ORDER BY category, subcategory`
@@ -627,19 +521,11 @@ router.post('/reset-password', async (req, res) => {
     }
     
     // Check if admin exists
-    const pool = getPool();
-    const [countRows] = await pool.query(
-    await pool.query('SELECT COUNT(*) as count FROM admin');
-    
     if (countRows[0].count === 0) {
       // Insert new password
-      const pool = getPool();
-    await pool.query('INSERT INTO admin (password) VALUES (?)', [newPassword]);
       res.json({ success: true, message: 'Password set successfully' });
     } else {
       // Update existing password
-      const pool = getPool();
-    await pool.query(
         'UPDATE admin SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM admin ORDER BY id LIMIT 1)',
         [newPassword]
       );
@@ -664,10 +550,6 @@ router.post('/change-password', async (req, res) => {
     }
     
     // Verify current password
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query('SELECT password FROM admin ORDER BY id LIMIT 1');
-    
     if (rows.length === 0) {
       return res.status(500).json({ success: false, error: 'Admin not configured' });
     }
@@ -677,8 +559,6 @@ router.post('/change-password', async (req, res) => {
     }
     
     // Update password
-    const pool = getPool();
-    await pool.query(
       'UPDATE admin SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM admin ORDER BY id LIMIT 1)',
       [newPassword]
     );
@@ -692,10 +572,6 @@ router.post('/change-password', async (req, res) => {
 // Get admin notifications
 router.get('/notifications', async (req, res) => {
   try {
-    const pool = getPool();
-    const [notifications] = await pool.query(
-    await pool.query(
-      `SELECT * FROM admin_notifications 
        ORDER BY created_at DESC 
        LIMIT 50`
     );
@@ -708,10 +584,6 @@ router.get('/notifications', async (req, res) => {
 // Get unread notifications count
 router.get('/notifications/unread-count', async (req, res) => {
   try {
-    const pool = getPool();
-    const [rows] = await pool.query(
-    await pool.query(
-      `SELECT COUNT(*) as count FROM admin_notifications WHERE read = 0`
     );
     res.json({ count: rows[0].count });
   } catch (err) {
@@ -723,8 +595,6 @@ router.get('/notifications/unread-count', async (req, res) => {
 router.put('/notifications/:id/read', async (req, res) => {
   try {
     const { id } = req.params;
-    const pool = getPool();
-    await pool.query(
       `UPDATE admin_notifications SET read = 1 WHERE id = ?`,
       [id]
     );
@@ -737,8 +607,6 @@ router.put('/notifications/:id/read', async (req, res) => {
 // Mark all notifications as read
 router.put('/notifications/read-all', async (req, res) => {
   try {
-    const pool = getPool();
-    await pool.query(
       `UPDATE admin_notifications SET read = 1 WHERE read = 0`
     );
     res.json({ success: true });
@@ -757,10 +625,6 @@ router.post('/products/:id/images', async (req, res) => {
       return res.status(400).json({ error: 'Image URL is required' });
     }
     
-    const pool = getPool();
-    const [result] = await pool.query(
-    await pool.query(
-      'INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)',
       [id, imageUrl, displayOrder]
     );
     res.json({ success: true, id: result.insertId });
@@ -773,8 +637,6 @@ router.post('/products/:id/images', async (req, res) => {
 router.delete('/products/:id/images/:imageId', async (req, res) => {
   try {
     const { id, imageId } = req.params;
-    const pool = getPool();
-    await pool.query(
       'DELETE FROM product_images WHERE id = ? AND product_id = ?',
       [imageId, id]
     );
@@ -794,10 +656,6 @@ router.post('/products/:id/variants', async (req, res) => {
       return res.status(400).json({ error: 'Size or color is required' });
     }
     
-    const pool = getPool();
-    const [result] = await pool.query(
-    await pool.query(
-      'INSERT INTO product_variants (product_id, size, color, stock, price_adjustment) VALUES (?, ?, ?, ?, ?)',
       [id, size || null, color || null, stock, priceAdjustment]
     );
     res.json({ success: true, id: result.insertId });
@@ -812,8 +670,6 @@ router.put('/products/:id/variants/:variantId', async (req, res) => {
     const { id, variantId } = req.params;
     const { size, color, stock, priceAdjustment } = req.body;
     
-    const pool = getPool();
-    await pool.query(
       'UPDATE product_variants SET size = ?, color = ?, stock = ?, price_adjustment = ? WHERE id = ? AND product_id = ?',
       [size || null, color || null, stock, priceAdjustment, variantId, id]
     );
@@ -827,8 +683,6 @@ router.put('/products/:id/variants/:variantId', async (req, res) => {
 router.delete('/products/:id/variants/:variantId', async (req, res) => {
   try {
     const { id, variantId } = req.params;
-    const pool = getPool();
-    await pool.query(
       'DELETE FROM product_variants WHERE id = ? AND product_id = ?',
       [variantId, id]
     );
@@ -841,10 +695,6 @@ router.delete('/products/:id/variants/:variantId', async (req, res) => {
 // Get all customers with their order statistics
 router.get('/customers', async (req, res) => {
   try {
-    const pool = getPool();
-    const [customers] = await pool.query(
-    await pool.query(
-      `SELECT 
         email,
         customer_name as name,
         phone,
@@ -871,10 +721,6 @@ router.get('/customers/:email', async (req, res) => {
     const { email } = req.params;
     
     // Get customer info from first order
-    const pool = getPool();
-    const [customerRows] = await pool.query(
-    await pool.query(
-      `SELECT customer_name, email, phone, address, city, country
        FROM orders
        WHERE email = ?
        LIMIT 1`,
@@ -888,10 +734,6 @@ router.get('/customers/:email', async (req, res) => {
     const customerInfo = customerRows[0];
     
     // Get all orders for this customer
-    const pool = getPool();
-    const [orders] = await pool.query(
-    await pool.query(
-      `SELECT 
         id,
         order_number,
         total_amount,
