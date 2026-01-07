@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { isReady } = db;
-
-// Helper to get current pool
-const getPool = () => db.pool;
+const { isReady, getPool } = db;
 
 // Middleware to check if database is ready
 const checkDatabase = (req, res, next) => {
