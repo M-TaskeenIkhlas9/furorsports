@@ -647,15 +647,9 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
     
     console.log('=== IMAGE UPLOAD DEBUG ===');
     console.log('useCloudinary:', useCloudinary);
+    console.log('isCloudinaryStorage:', isCloudinaryStorage);
     console.log('req.file keys:', Object.keys(req.file));
-    console.log('req.file:', {
-      filename: req.file.filename,
-      path: req.file.path,
-      url: req.file.url,
-      secure_url: req.file.secure_url,
-      public_id: req.file.public_id,
-      format: req.file.format
-    });
+    console.log('req.file:', JSON.stringify(req.file, null, 2));
     console.log('Environment vars:', {
       CLOUDINARY_CLOUD_NAME: !!process.env.CLOUDINARY_CLOUD_NAME,
       CLOUDINARY_API_KEY: !!process.env.CLOUDINARY_API_KEY,
@@ -668,14 +662,28 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
     // Check if Cloudinary was used - multiple indicators
     // 1. Check if we're using CloudinaryStorage (most reliable - if true, upload DEFINITELY went to Cloudinary)
     // 2. Check for public_id (always set by CloudinaryStorage when upload succeeds)
-    // 3. Check if path contains Cloudinary folder structure
+    // 3. Check if path contains Cloudinary folder structure (but NOT /images/products/ prefix)
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME || CLOUDINARY_FALLBACK.cloud_name;
     const hasPublicId = !!req.file.public_id;
-    const hasCloudinaryPath = req.file.path && (req.file.path.includes('furorsports/products') || req.file.path.startsWith('https://res.cloudinary.com'));
+    const hasCloudinaryUrl = req.file.path && req.file.path.startsWith('https://res.cloudinary.com');
+    const hasCloudinaryPath = req.file.path && req.file.path.includes('furorsports/products') && !req.file.path.startsWith('/images/products/');
+    const hasSecureUrl = !!req.file.secure_url;
+    const hasUrl = !!req.file.url;
+    
+    console.log('Cloudinary detection:', {
+      isCloudinaryStorage,
+      useCloudinary,
+      hasPublicId,
+      hasCloudinaryUrl,
+      hasCloudinaryPath,
+      hasSecureUrl,
+      hasUrl,
+      path: req.file.path
+    });
     
     // If CloudinaryStorage is initialized, ALWAYS treat as Cloudinary upload
-    // (even if req.file properties are missing, the upload went to Cloudinary)
-    const isCloudinaryUpload = isCloudinaryStorage || (useCloudinary && (hasPublicId || hasCloudinaryPath));
+    // OR if we have any Cloudinary indicators (public_id, secure_url, url, or Cloudinary path without /images/ prefix)
+    const isCloudinaryUpload = isCloudinaryStorage || hasPublicId || hasSecureUrl || hasUrl || hasCloudinaryUrl || hasCloudinaryPath;
     
     if (isCloudinaryUpload) {
       // Cloudinary upload succeeded - construct the full URL
@@ -731,8 +739,8 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
         }
       }
       
-      // Last resort: if path contains furorsports/products folder, extract and construct URL
-      if (!imageUrl && req.file.path && req.file.path.includes('furorsports/products')) {
+      // Last resort: if path contains furorsports/products folder (but NOT /images/products/ prefix), extract and construct URL
+      if (!imageUrl && req.file.path && req.file.path.includes('furorsports/products') && !req.file.path.startsWith('/images/products/')) {
         // Extract filename from path
         const pathParts = req.file.path.split('/');
         const filename = pathParts[pathParts.length - 1];
@@ -742,6 +750,13 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
           imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/furorsports/products/${publicId}.${ext}`;
           console.log('  Constructed Cloudinary URL from path:', imageUrl);
         }
+      }
+      
+      // If filename looks like a Cloudinary public_id (random string without extension), construct URL
+      if (!imageUrl && req.file.filename && !req.file.filename.includes('.') && req.file.filename.length > 10) {
+        const format = req.file.format || 'png';
+        imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/furorsports/products/${req.file.filename}.${format}`;
+        console.log('  Constructed Cloudinary URL from filename (public_id format):', imageUrl);
       }
       
       if (imageUrl) {
