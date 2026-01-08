@@ -666,12 +666,15 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
     let imageUrl;
     
     // Check if Cloudinary was used - multiple indicators
-    // 1. Check if we're using CloudinaryStorage (most reliable)
-    // 2. Check for public_id (always set by CloudinaryStorage)
+    // 1. Check if we're using CloudinaryStorage (most reliable - if true, upload DEFINITELY went to Cloudinary)
+    // 2. Check for public_id (always set by CloudinaryStorage when upload succeeds)
     // 3. Check if path contains Cloudinary folder structure
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME || CLOUDINARY_FALLBACK.cloud_name;
     const hasPublicId = !!req.file.public_id;
     const hasCloudinaryPath = req.file.path && (req.file.path.includes('furorsports/products') || req.file.path.startsWith('https://res.cloudinary.com'));
+    
+    // If CloudinaryStorage is initialized, ALWAYS treat as Cloudinary upload
+    // (even if req.file properties are missing, the upload went to Cloudinary)
     const isCloudinaryUpload = isCloudinaryStorage || (useCloudinary && (hasPublicId || hasCloudinaryPath));
     
     if (isCloudinaryUpload) {
@@ -694,17 +697,50 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
         imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}.${format}`;
       }
       
-      // Check if path contains furorsports/products folder (indicates Cloudinary was intended)
-      // Even if public_id is missing, we can construct URL from path/filename
-      if (!imageUrl && (req.file.path && req.file.path.includes('furorsports/products') || req.file.filename)) {
-        const filename = req.file.filename || (req.file.path ? req.file.path.split('/').pop() : null);
+      // If we're using CloudinaryStorage but don't have a URL yet, construct it
+      // This handles cases where CloudinaryStorage uploads but doesn't return full URL
+      if (!imageUrl && isCloudinaryStorage) {
+        // Try to get public_id from various sources
+        let publicId = req.file.public_id;
+        
+        // If no public_id, try to extract from filename or path
+        if (!publicId) {
+          const filename = req.file.filename || (req.file.path ? req.file.path.split('/').pop() : null);
+          if (filename) {
+            // Remove extension to get public_id
+            publicId = filename.replace(/\.[^/.]+$/, '');
+            // If filename contains folder structure, use it as-is
+            if (filename.includes('furorsports/products/')) {
+              publicId = filename.replace(/\.[^/.]+$/, '');
+            } else {
+              // Otherwise prepend folder
+              publicId = `furorsports/products/${publicId}`;
+            }
+          }
+        } else {
+          // If public_id exists but doesn't include folder, add it
+          if (!publicId.includes('furorsports/products')) {
+            publicId = `furorsports/products/${publicId}`;
+          }
+        }
+        
+        if (publicId) {
+          const format = req.file.format || (req.file.filename ? req.file.filename.split('.').pop() : 'png');
+          imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}.${format}`;
+          console.log('  Constructed Cloudinary URL from public_id/filename:', imageUrl);
+        }
+      }
+      
+      // Last resort: if path contains furorsports/products folder, extract and construct URL
+      if (!imageUrl && req.file.path && req.file.path.includes('furorsports/products')) {
+        // Extract filename from path
+        const pathParts = req.file.path.split('/');
+        const filename = pathParts[pathParts.length - 1];
         if (filename) {
-          // Remove extension from filename to get public_id
           const publicId = filename.replace(/\.[^/.]+$/, '');
-          const ext = filename.match(/\.[^/.]+$/)?.[0]?.slice(1) || req.file.format || 'png';
-          // Construct Cloudinary URL with folder structure
+          const ext = filename.match(/\.[^/.]+$/)?.[0]?.slice(1) || 'png';
           imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/furorsports/products/${publicId}.${ext}`;
-          console.log('  Constructed Cloudinary URL from filename/path:', imageUrl);
+          console.log('  Constructed Cloudinary URL from path:', imageUrl);
         }
       }
       
