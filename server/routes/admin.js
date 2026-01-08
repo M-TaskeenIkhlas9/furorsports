@@ -163,23 +163,34 @@ upload = multer({
 // Admin login
 router.post('/login', async (req, res) => {
   try {
+    const pool = getPool();
+    const { password } = req.body;
     
     if (!password) {
       return res.status(400).json({ success: false, error: 'Password is required' });
     }
     
-    // Get admin password from database
-    if (rows.length === 0) {
-      return res.status(500).json({ success: false, error: 'Admin not configured' });
+    // Get admin password from database (check if admin table exists, otherwise use default)
+    let adminPassword = 'admin123'; // Default password
+    
+    try {
+      const [rows] = await pool.query('SELECT password FROM admin LIMIT 1');
+      if (rows.length > 0 && rows[0].password) {
+        adminPassword = rows[0].password;
+      }
+    } catch (dbError) {
+      // Admin table doesn't exist, use default password
+      console.log('Admin table not found, using default password');
     }
     
-    if (password === rows[0].password) {
+    if (password === adminPassword) {
       res.json({ success: true, message: 'Login successful' });
     } else {
       res.status(401).json({ success: false, error: 'Invalid password' });
     }
   } catch (err) {
-    res.status(500).json({ success: false, error: 'Database error' });
+    console.error('Login error:', err);
+    res.status(500).json({ success: false, error: 'Database error: ' + err.message });
   }
 });
 
