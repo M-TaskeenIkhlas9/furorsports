@@ -779,8 +779,29 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
       }
     } else {
       // Local storage - path relative to /images
-      imagePath = `/images/products/${req.file.filename}`;
-      imageUrl = imagePath;
+      // BUT: if path already contains /images/products/furorsports/products/, 
+      // it might actually be a Cloudinary upload that we failed to detect
+      // Try to extract Cloudinary URL from the path structure
+      if (req.file.path && req.file.path.includes('/images/products/furorsports/products/')) {
+        // This looks like it might have been intended for Cloudinary
+        // Extract the filename and construct Cloudinary URL
+        const filename = req.file.filename || req.file.path.split('/').pop();
+        if (filename && filename.length > 5) {
+          const publicId = filename.replace(/\.[^/.]+$/, '');
+          const ext = filename.match(/\.[^/.]+$/)?.[0]?.slice(1) || 'png';
+          imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/furorsports/products/${publicId}.${ext}`;
+          imagePath = imageUrl;
+          console.log('⚠ Path looks like Cloudinary but was saved locally, constructing URL:', imageUrl);
+          console.log('  Original path:', req.file.path);
+        } else {
+          imagePath = `/images/products/${req.file.filename}`;
+          imageUrl = imagePath;
+        }
+      } else {
+        imagePath = `/images/products/${req.file.filename}`;
+        imageUrl = imagePath;
+      }
+      
       console.log('⚠ Image saved to local storage (will be lost on redeploy):', imagePath);
       console.log('  Cloudinary status:', { 
         useCloudinary, 
@@ -790,7 +811,8 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
         hasSecureUrl: !!req.file.secure_url,
         hasPublicId: !!req.file.public_id,
         hasCloudinaryPath,
-        detectedAsCloudinary: isCloudinaryUpload
+        detectedAsCloudinary: isCloudinaryUpload,
+        finalPath: imagePath
       });
     }
     
